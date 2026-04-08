@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rocío Vene Makeup · Panel de Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --rv-nude: #C9A882;
+    --rv-rose: #D4869A;
+    --rv-cream: #F8F4F0;
+    --rv-champagne: #EFE5D8;
+    --rv-deep: #2A1F1A;
+    --rv-muted: #7D6B62;
+    --rv-success: #7B9E7E;
+    --rv-danger: #C4706A;
+    --rv-gold: #B8965A;
+    --rv-white: #FDFAF7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--rv-cream); color: var(--rv-deep); min-height: 100vh; }
+  .erp-root { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: 220px; min-width: 220px; background: var(--rv-deep); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .sidebar-brand { padding: 28px 20px 20px; border-bottom: 1px solid rgba(201,168,130,0.2); }
+  .sidebar-brand h1 { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 500; color: var(--rv-nude); letter-spacing: 0.5px; line-height: 1.3; }
+  .sidebar-brand p { font-size: 10px; color: rgba(201,168,130,0.5); letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; }
+  .sidebar-nav { padding: 16px 12px; flex: 1; }
+  .nav-section-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(201,168,130,0.35); padding: 8px 10px 4px; margin-top: 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-bottom: 2px; font-size: 13px; color: rgba(201,168,130,0.65); border: none; background: transparent; width: 100%; text-align: left; }
+  .nav-item:hover { background: rgba(201,168,130,0.1); color: var(--rv-nude); }
+  .nav-item.active { background: rgba(201,168,130,0.15); color: var(--rv-nude); font-weight: 500; }
+  .nav-item .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .badge-count { margin-left: auto; background: var(--rv-rose); color: white; font-size: 10px; padding: 1px 6px; border-radius: 20px; font-weight: 500; }
+
+  /* MAIN */
+  .main-area { flex: 1; overflow-x: hidden; min-width: 0; }
+  .topbar { background: var(--rv-white); border-bottom: 1px solid rgba(201,168,130,0.2); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .topbar-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--rv-deep); }
+  .topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .content-area { padding: 24px 28px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* BUTTONS */
+  .btn-primary { background: var(--rv-nude); color: white; border: none; padding: 9px 18px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-primary:hover { background: var(--rv-gold); }
+  .btn-secondary { background: transparent; color: var(--rv-muted); border: 1px solid rgba(201,168,130,0.3); padding: 8px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { border-color: var(--rv-nude); color: var(--rv-nude); }
+  .btn-danger { background: transparent; color: var(--rv-danger); border: 1px solid rgba(196,112,106,0.3); padding: 5px 10px; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .btn-danger:hover { background: rgba(196,112,106,0.1); }
+  .btn-icon { background: transparent; border: none; cursor: pointer; padding: 4px 6px; border-radius: 6px; font-size: 14px; transition: background 0.15s; color: var(--rv-muted); }
+  .btn-icon:hover { background: var(--rv-champagne); color: var(--rv-deep); }
+
+  /* CARDS */
+  .card { background: var(--rv-white); border-radius: 12px; border: 1px solid rgba(201,168,130,0.15); overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid rgba(201,168,130,0.1); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 500; color: var(--rv-deep); }
+  .card-body { padding: 16px 20px; }
+
+  /* METRICS */
+  .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .metric-card { background: var(--rv-white); border-radius: 12px; padding: 18px 20px; border: 1px solid rgba(201,168,130,0.15); }
+  .metric-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--rv-muted); margin-bottom: 8px; }
+  .metric-value { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--rv-deep); line-height: 1; }
+  .metric-sub { font-size: 12px; color: var(--rv-success); margin-top: 6px; }
+  .metric-sub.down { color: var(--rv-danger); }
+
+  /* DASHBOARD GRID */
+  .dashboard-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 20px; }
+
+  /* CITAS */
+  .cita-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(201,168,130,0.1); }
+  .cita-item:last-child { border-bottom: none; }
+  .cita-hora { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--rv-nude); min-width: 50px; text-align: center; }
+  .cita-hora small { display: block; font-size: 11px; font-weight: 400; color: var(--rv-muted); }
+  .cita-info { flex: 1; }
+  .cita-nombre { font-size: 14px; font-weight: 500; color: var(--rv-deep); }
+  .cita-servicio { font-size: 12px; color: var(--rv-muted); margin-top: 2px; }
+  .cita-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge-confirmed { background: rgba(123,158,126,0.15); color: var(--rv-success); }
+  .badge-pending { background: rgba(184,150,90,0.15); color: var(--rv-gold); }
+  .badge-vip { background: rgba(201,168,130,0.2); color: var(--rv-nude); }
+  .badge-cancelled { background: rgba(196,112,106,0.12); color: var(--rv-danger); }
+
+  /* ALERTS */
+  .alert-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .alert-dot.urgent { background: var(--rv-danger); }
+  .alert-dot.warn { background: var(--rv-gold); }
+  .alert-dot.ok { background: var(--rv-success); }
+  .alert-warn { background: rgba(184,150,90,0.08); }
+  .alert-urgent { background: rgba(196,112,106,0.08); }
+  .alert-ok { background: rgba(123,158,126,0.08); }
+
+  /* TABLES */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--rv-muted); font-weight: 500; background: var(--rv-cream); }
+  td { padding: 11px 14px; border-bottom: 1px solid rgba(201,168,130,0.08); color: var(--rv-deep); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(201,168,130,0.04); }
+  .client-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--rv-champagne); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 600; color: var(--rv-nude); flex-shrink: 0; }
+  .client-row { display: flex; align-items: center; gap: 10px; }
+
+  /* TAGS */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .tag-vip { background: rgba(184,150,90,0.15); color: var(--rv-gold); }
+  .tag-new { background: rgba(212,134,154,0.15); color: var(--rv-rose); }
+  .tag-recurrente { background: rgba(123,158,126,0.15); color: var(--rv-success); }
+  .tag-referido { background: rgba(201,168,130,0.15); color: var(--rv-nude); }
+
+  /* SEARCH */
+  .search-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .search-input { flex: 1; padding: 9px 14px; border: 1px solid rgba(201,168,130,0.25); border-radius: 8px; background: var(--rv-white); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--rv-deep); outline: none; transition: border-color 0.2s; }
+  .search-input:focus { border-color: var(--rv-nude); }
+  select.search-input { cursor: pointer; }
+
+  /* MODALS */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(42,31,26,0.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--rv-white); border-radius: 16px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--rv-deep); margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12px; color: var(--rv-muted); margin-bottom: 6px; letter-spacing: 0.5px; }
+  .form-input { width: 100%; padding: 9px 12px; border: 1px solid rgba(201,168,130,0.25); border-radius: 8px; background: var(--rv-cream); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--rv-deep); outline: none; transition: border-color 0.2s; }
+  .form-input:focus { border-color: var(--rv-nude); background: var(--rv-white); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* FINANZAS */
+  .finance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .tx-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(201,168,130,0.1); }
+  .tx-item:last-child { border-bottom: none; }
+  .tx-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .tx-icon.ingreso { background: rgba(123,158,126,0.15); }
+  .tx-icon.gasto { background: rgba(196,112,106,0.1); }
+  .tx-info { flex: 1; }
+  .tx-concepto { font-size: 13px; font-weight: 500; color: var(--rv-deep); }
+  .tx-fecha { font-size: 11px; color: var(--rv-muted); margin-top: 2px; }
+  .tx-monto { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; }
+  .tx-monto.ingreso { color: var(--rv-success); }
+  .tx-monto.gasto { color: var(--rv-danger); }
+
+  /* INVENTARIO */
+  .inv-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .inv-card { background: var(--rv-white); border-radius: 12px; border: 1px solid rgba(201,168,130,0.15); padding: 16px; position: relative; }
+  .inv-icon { font-size: 22px; margin-bottom: 8px; }
+  .inv-name { font-size: 13px; font-weight: 500; color: var(--rv-deep); margin-bottom: 4px; }
+  .inv-stock { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; color: var(--rv-deep); }
+  .inv-unit { font-size: 12px; color: var(--rv-muted); margin-left: 4px; }
+  .stock-bar-wrap { margin-top: 8px; height: 4px; background: var(--rv-champagne); border-radius: 2px; overflow: hidden; }
+  .stock-bar { height: 100%; border-radius: 2px; }
+  .stock-ok { background: var(--rv-success); }
+  .stock-low { background: var(--rv-gold); }
+  .stock-critical { background: var(--rv-danger); }
+  .inv-alert { font-size: 11px; margin-top: 6px; }
+  .inv-alert.low { color: var(--rv-gold); }
+  .inv-alert.critical { color: var(--rv-danger); }
+  .inv-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; }
+
+  /* PROMOCIONES */
+  .promo-card { background: var(--rv-white); border-radius: 12px; border: 1px solid rgba(201,168,130,0.15); padding: 18px; margin-bottom: 14px; }
+  .promo-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .promo-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 500; color: var(--rv-deep); }
+  .promo-status { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .status-active { background: rgba(123,158,126,0.15); color: var(--rv-success); }
+  .status-draft { background: rgba(201,168,130,0.15); color: var(--rv-nude); }
+  .status-ended { background: rgba(125,107,98,0.1); color: var(--rv-muted); }
+  .promo-meta { display: flex; gap: 20px; font-size: 12px; color: var(--rv-muted); margin-bottom: 12px; flex-wrap: wrap; }
+  .promo-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .promo-stat { background: var(--rv-cream); border-radius: 8px; padding: 10px 12px; }
+  .promo-stat-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--rv-muted); }
+  .promo-stat-value { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; color: var(--rv-deep); margin-top: 2px; }
+
+  /* MENSAJES */
+  .msg-template { background: var(--rv-cream); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; border-left: 3px solid var(--rv-nude); }
+  .msg-type { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--rv-nude); font-weight: 500; margin-bottom: 6px; }
+  .msg-text { font-size: 13px; color: var(--rv-deep); line-height: 1.6; }
+  .msg-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-copy { font-size: 12px; padding: 5px 12px; border: 1px solid rgba(201,168,130,0.3); border-radius: 6px; background: var(--rv-white); color: var(--rv-muted); cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .btn-copy:hover { border-color: var(--rv-nude); color: var(--rv-nude); }
+  .btn-copy.copied { border-color: var(--rv-success); color: var(--rv-success); }
+
+  /* REPORTS */
+  .reports-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .chart-container { position: relative; width: 100%; height: 220px; }
+
+  /* CALENDAR */
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 20px; }
+  .cal-day-label { text-align: center; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--rv-muted); padding-bottom: 8px; }
+  .cal-day { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; transition: all 0.15s; background: transparent; border: none; color: var(--rv-deep); padding: 4px; }
+  .cal-day:hover { background: var(--rv-champagne); }
+  .cal-day.today { background: var(--rv-nude); color: white; font-weight: 500; }
+  .cal-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rv-rose); margin-top: 2px; }
+  .cal-day.today .cal-dot { background: white; }
+  .cal-day.other-month { color: rgba(125,107,98,0.35); }
+
+  /* SECTION TITLE */
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 500; color: var(--rv-deep); margin-bottom: 16px; }
+  .separator { height: 1px; background: rgba(201,168,130,0.12); margin: 20px 0; }
+
+  /* PERFIL CLIENTE */
+  .profile-modal { max-width: 720px; }
+  .profile-header { display: flex; align-items: center; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(201,168,130,0.15); margin-bottom: 20px; }
+  .profile-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--rv-champagne); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: var(--rv-nude); flex-shrink: 0; }
+  .profile-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--rv-deep); }
+  .profile-meta { font-size: 13px; color: var(--rv-muted); margin-top: 4px; }
+  .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .profile-stat { background: var(--rv-cream); border-radius: 10px; padding: 12px 16px; text-align: center; }
+  .profile-stat-val { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--rv-deep); }
+  .profile-stat-label { font-size: 11px; color: var(--rv-muted); margin-top: 2px; letter-spacing: 0.5px; }
+  .service-history-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(201,168,130,0.08); }
+  .service-history-item:last-child { border-bottom: none; }
+  .service-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rv-nude); flex-shrink: 0; }
+  .service-detail { flex: 1; }
+  .service-name { font-size: 13px; font-weight: 500; color: var(--rv-deep); }
+  .service-date { font-size: 11px; color: var(--rv-muted); margin-top: 1px; }
+  .service-price { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: var(--rv-success); font-weight: 600; }
+
+  /* LINK REGISTRO */
+  .link-box { background: var(--rv-cream); border: 1px dashed rgba(201,168,130,0.4); border-radius: 10px; padding: 14px 16px; font-size: 13px; color: var(--rv-muted); word-break: break-all; margin-bottom: 12px; }
+  .link-box strong { color: var(--rv-deep); display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* WHATSAPP */
+  .wa-btn { background: #25D366; color: white; border: none; padding: 9px 18px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; transition: background 0.2s; }
+  .wa-btn:hover { background: #1ebe5a; }
+
+  /* NOTIFICATION TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--rv-deep); color: white; padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--rv-muted); font-size: 13px; }
+  .empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
+
+  /* AGENDA LAYOUT */
+  .agenda-layout { display: flex; gap: 20px; align-items: flex-start; }
+  .agenda-cal { flex: 1; }
+  .agenda-side { width: 300px; flex-shrink: 0; }
+
+  /* REGISTRO CARDS */
+  .reg-card-item { background: var(--rv-white); border-radius: 12px; border: 1px solid rgba(201,168,130,0.2); padding: 16px 18px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 14px; }
+  .reg-card-item.aprobada { opacity: 0.6; border-style: dashed; }
+  .reg-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--rv-rose), var(--rv-nude)); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: white; flex-shrink: 0; }
+  .reg-info { flex: 1; min-width: 0; }
+  .reg-nombre { font-size: 14px; font-weight: 500; color: var(--rv-deep); margin-bottom: 2px; }
+  .reg-detalle { font-size: 12px; color: var(--rv-muted); line-height: 1.5; }
+  .reg-detalle span { margin-right: 10px; }
+  .reg-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+  .btn-aprobar { background: var(--rv-nude); color: white; border: none; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.2s; white-space: nowrap; }
+  .btn-aprobar:hover { background: var(--rv-gold); }
+  .reg-fecha { font-size: 10px; color: var(--rv-muted); letter-spacing: 0.5px; margin-top: 4px; }
+  .reg-tag-nueva { display: inline-block; background: rgba(212,134,154,0.15); color: var(--rv-rose); border-radius: 4px; padding: 1px 7px; font-size: 10px; font-weight: 500; margin-left: 6px; }
+  .reg-status-ok { background: rgba(123,158,126,0.1); border: 1px solid rgba(123,158,126,0.2); color: var(--rv-success); border-radius: 10px; padding: 10px 16px; font-size: 13px; display:flex; align-items:center; gap:8px; }
+  .reg-status-err { background: rgba(196,112,106,0.08); border: 1px solid rgba(196,112,106,0.2); color: var(--rv-danger); border-radius: 10px; padding: 10px 16px; font-size: 13px; display:flex; align-items:center; gap:8px; }
+  .reg-status-loading { background: rgba(201,168,130,0.08); border: 1px solid rgba(201,168,130,0.2); color: var(--rv-muted); border-radius: 10px; padding: 10px 16px; font-size: 13px; display:flex; align-items:center; gap:8px; }
+
+  /* BIRTHDAY BANNER */
+  .birthday-banner { background: linear-gradient(135deg, var(--rv-rose), var(--rv-nude)); border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; color: white; }
+  .birthday-banner .bb-icon { font-size: 28px; flex-shrink: 0; }
+  .birthday-banner .bb-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 500; }
+  .birthday-banner .bb-sub { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .bb-clients { display: flex; gap: 10px; margin-left: auto; flex-wrap: wrap; }
+  .bb-chip { background: rgba(255,255,255,0.25); border-radius: 20px; padding: 4px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: background 0.15s; }
+  .bb-chip:hover { background: rgba(255,255,255,0.4); }
+
+  /* FINANZAS FILTROS */
+  .fin-filters { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .fin-filter-label { font-size: 11px; color: var(--rv-muted); letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+  .fin-tab { padding: 5px 14px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(201,168,130,0.3); background: transparent; color: var(--rv-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .fin-tab.active { background: var(--rv-nude); color: white; border-color: var(--rv-nude); }
+  .fin-search { flex: 1; min-width: 140px; padding: 6px 12px; border: 1px solid rgba(201,168,130,0.25); border-radius: 8px; background: var(--rv-white); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--rv-deep); outline: none; }
+  .fin-search:focus { border-color: var(--rv-nude); }
+
+  /* MENSAJES */
+  .msg-search-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; }
+  .msg-search-input { flex: 1; padding: 9px 14px; border: 1px solid rgba(201,168,130,0.25); border-radius: 8px; background: var(--rv-white); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--rv-deep); outline: none; }
+  .msg-search-input:focus { border-color: var(--rv-nude); }
+  .msg-template-actions { display: flex; gap: 4px; margin-left: auto; }
+
+  /* MODAL MENSAJE */
+  .modal-msg { max-width: 540px; }
+
+  /* REGISTRO PAGE (vista cliente) */
+  .reg-page { display: none; position: fixed; inset: 0; z-index: 200; background: var(--rv-cream); overflow-y: auto; }
+  .reg-page.open { display: block; }
+  .reg-container { max-width: 480px; margin: 0 auto; padding: 40px 24px 60px; }
+  .reg-brand { text-align: center; margin-bottom: 32px; }
+  .reg-brand .reg-logo { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--rv-nude); }
+  .reg-brand p { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--rv-muted); margin-top: 4px; }
+  .reg-card { background: var(--rv-white); border-radius: 20px; padding: 32px 28px; border: 1px solid rgba(201,168,130,0.15); box-shadow: 0 8px 40px rgba(42,31,26,0.07); }
+  .reg-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--rv-deep); margin-bottom: 6px; }
+  .reg-sub { font-size: 13px; color: var(--rv-muted); margin-bottom: 24px; line-height: 1.5; }
+  .reg-step { display: none; }
+  .reg-step.active { display: block; }
+  .reg-progress { display: flex; gap: 6px; margin-bottom: 28px; }
+  .reg-prog-dot { flex: 1; height: 3px; border-radius: 2px; background: var(--rv-champagne); transition: background 0.3s; }
+  .reg-prog-dot.done { background: var(--rv-nude); }
+  .reg-success { text-align: center; padding: 20px 0; }
+  .reg-success .check { font-size: 52px; margin-bottom: 16px; }
+  .reg-success h2 { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; color: var(--rv-deep); margin-bottom: 8px; }
+  .reg-success p { font-size: 13px; color: var(--rv-muted); line-height: 1.6; }
+  .reg-services { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  .reg-service-btn { padding: 12px; border: 1.5px solid rgba(201,168,130,0.3); border-radius: 10px; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--rv-deep); cursor: pointer; transition: all 0.15s; text-align: left; }
+  .reg-service-btn.selected { border-color: var(--rv-nude); background: rgba(201,168,130,0.12); color: var(--rv-nude); font-weight: 500; }
+  .reg-close-btn { position: fixed; top: 16px; right: 16px; background: var(--rv-white); border: 1px solid rgba(201,168,130,0.3); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--rv-muted); cursor: pointer; font-family: 'DM Sans', sans-serif; z-index: 201; }
+  .reg-close-btn:hover { color: var(--rv-deep); border-color: var(--rv-nude); }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 56px; min-width: 56px; }
+    .nav-item span:not(.nav-icon) { display: none; }
+    .nav-section-label { display: none; }
+    .sidebar-brand h1, .sidebar-brand p { display: none; }
+    .sidebar-brand { padding: 14px 10px; }
+    .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .inv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .reports-grid { grid-template-columns: 1fr; }
+    .finance-grid { grid-template-columns: 1fr; }
+    .agenda-layout { flex-direction: column; }
+    .agenda-side { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="erp-root">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <h1>Rocío Vene<br>Makeup</h1>
+      <p>Panel de Control</p>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <button class="nav-item active" onclick="showPanel('dashboard',this)"><span class="nav-icon">◆</span><span>Dashboard</span></button>
+      <button class="nav-item" onclick="showPanel('agenda',this)"><span class="nav-icon">◈</span><span>Agenda</span><span class="badge-count" id="badge-agenda">0</span></button>
+      <div class="nav-section-label">Gestión</div>
+      <button class="nav-item" onclick="showPanel('clientes',this)"><span class="nav-icon">◉</span><span>Clientes</span></button>
+      <button class="nav-item" onclick="showPanel('finanzas',this)"><span class="nav-icon">◇</span><span>Finanzas</span></button>
+      <button class="nav-item" onclick="showPanel('inventario',this)"><span class="nav-icon">▣</span><span>Inventario</span><span class="badge-count" id="badge-inv" style="background:var(--rv-gold)">0</span></button>
+      <div class="nav-section-label">Marketing</div>
+      <button class="nav-item" onclick="showPanel('promociones',this)"><span class="nav-icon">◈</span><span>Promociones</span></button>
+      <button class="nav-item" onclick="showPanel('mensajes',this)"><span class="nav-icon">◎</span><span>Mensajes</span></button>
+      <div class="nav-section-label">Análisis</div>
+      <button class="nav-item" onclick="showPanel('registros',this)"><span class="nav-icon">🌸</span><span>Registros</span><span class="badge-count" id="badge-registros" style="display:none">0</span></button>
+      <button class="nav-item" onclick="showPanel('reportes',this)"><span class="nav-icon">◐</span><span>Reportes</span></button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-actions">
+        <span style="font-size:12px;color:var(--rv-muted)" id="topbar-date"></span>
+        <button class="btn-primary" onclick="openModal('cita')">+ Nueva Cita</button>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- DASHBOARD -->
+      <div id="panel-dashboard" class="panel active">
+        <div id="birthday-banner"></div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Ingresos hoy</div>
+            <div class="metric-value" id="dash-hoy">$0</div>
+            <div class="metric-sub" id="dash-hoy-sub">0 citas completadas</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Ingresos este mes</div>
+            <div class="metric-value" id="dash-mes">$0</div>
+            <div class="metric-sub" id="dash-mes-sub"></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Citas este mes</div>
+            <div class="metric-value" id="dash-citas">0</div>
+            <div class="metric-sub" id="dash-pendientes">0 pendientes</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total clientes</div>
+            <div class="metric-value" id="dash-clientes">0</div>
+            <div class="metric-sub" id="dash-clientes-sub"></div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Citas de hoy</div>
+              <button class="btn-secondary" onclick="showPanel('agenda', document.querySelector('.nav-item:nth-child(2)'))">Ver agenda</button>
+            </div>
+            <div class="card-body" id="dash-citas-hoy">
+              <div class="empty-state"><div class="empty-icon">📅</div>No hay citas registradas para hoy</div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Alertas</div></div>
+              <div class="card-body" id="dash-alertas">
+                <div class="alert-item alert-ok"><div class="alert-dot ok"></div><span>Todo en orden 🌸</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Clientes VIP</div></div>
+              <div class="card-body" id="dash-vip">
+                <div class="empty-state" style="padding:16px"><div class="empty-icon">⭐</div>Sin clientes VIP aún</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Ingresos vs Gastos — 2025</div></div>
+          <div class="card-body">
+            <div class="chart-container"><canvas id="chartFinanzas"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENDA -->
+      <div id="panel-agenda" class="panel">
+        <div class="agenda-layout">
+          <div class="agenda-cal card">
+            <div class="card-header">
+              <div class="card-title" id="cal-title"></div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn-secondary" onclick="changeMonth(-1)">← Anterior</button>
+                <button class="btn-secondary" onclick="changeMonth(1)">Siguiente →</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="cal-grid" style="margin-bottom:8px;" id="cal-labels"></div>
+              <div class="cal-grid" id="cal-days"></div>
+            </div>
+          </div>
+          <div class="agenda-side">
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header"><div class="card-title" id="agenda-selected-title">Próximas citas</div></div>
+              <div class="card-body" id="agenda-citas-list">
+                <div class="empty-state"><div class="empty-icon">📅</div>No hay citas</div>
+              </div>
+            </div>
+            <button class="btn-primary" style="width:100%;margin-bottom:10px;" onclick="openModal('cita')">+ Nueva Cita</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div id="panel-clientes" class="panel">
+        <div class="search-bar">
+          <input type="text" class="search-input" placeholder="Buscar cliente..." id="searchCliente" oninput="filterClientes()">
+          <select class="search-input" style="width:160px;" id="filterTipo" onchange="filterClientes()">
+            <option value="">Todas</option>
+            <option value="VIP">VIP</option>
+            <option value="Recurrente">Recurrentes</option>
+            <option value="Nueva">Nuevas</option>
+            <option value="Referido">Referidas</option>
+          </select>
+          <button class="btn-primary" onclick="openModal('cliente')">+ Nueva Cliente</button>
+          <button class="btn-secondary" onclick="openModal('invitar')">📨 Invitar cliente</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Teléfono</th>
+                  <th>Último servicio</th>
+                  <th>Servicios</th>
+                  <th>Gasto total</th>
+                  <th>Tipo</th>
+                  <th>Cumpleaños</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="clientes-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINANZAS -->
+      <div id="panel-finanzas" class="panel">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Ingresos mes</div>
+            <div class="metric-value" id="fin-ingresos">$0</div>
+            <div class="metric-sub">Total ingresos</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Gastos mes</div>
+            <div class="metric-value" id="fin-gastos">$0</div>
+            <div class="metric-sub down">Productos + otros</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Ganancia neta</div>
+            <div class="metric-value" id="fin-neta">$0</div>
+            <div class="metric-sub" id="fin-margen">Margen 0%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total movimientos</div>
+            <div class="metric-value" id="fin-total-mov">0</div>
+            <div class="metric-sub">Registrados</div>
+          </div>
+        </div>
+        <div class="finance-grid">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Registrar movimiento</div></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Tipo</label>
+                <select class="form-input" id="tx-tipo">
+                  <option>Ingreso — Servicio</option>
+                  <option>Gasto — Productos</option>
+                  <option>Gasto — Transporte</option>
+                  <option>Gasto — Marketing</option>
+                  <option>Gasto — Personal</option>
+                  <option>Gasto — Otro</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Monto (MXN)</label>
+                  <input type="number" class="form-input" id="tx-monto" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Fecha</label>
+                  <input type="date" class="form-input" id="tx-fecha">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Concepto</label>
+                <input type="text" class="form-input" id="tx-concepto" placeholder="Ej: Maquillaje novia Valentina">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Forma de pago</label>
+                <select class="form-input" id="tx-pago">
+                  <option>Efectivo</option>
+                  <option>Transferencia</option>
+                  <option>Tarjeta</option>
+                </select>
+              </div>
+              <button class="btn-primary" style="width:100%" onclick="registrarTx()">Registrar</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Movimientos recientes</div>
+              <button class="btn-secondary" onclick="exportarCSV()">Exportar CSV</button>
+            </div>
+            <div class="card-body">
+              <div class="fin-filters">
+                <span class="fin-filter-label">Filtrar:</span>
+                <button class="fin-tab active" onclick="setFinFiltro('todo',this)">Todo</button>
+                <button class="fin-tab" onclick="setFinFiltro('mes',this)">Este mes</button>
+                <button class="fin-tab" onclick="setFinFiltro('semana',this)">Esta semana</button>
+                <button class="fin-tab" onclick="setFinFiltro('ingreso',this)">Solo ingresos</button>
+                <button class="fin-tab" onclick="setFinFiltro('gasto',this)">Solo gastos</button>
+                <input type="text" class="fin-search" id="fin-search" placeholder="Buscar..." oninput="renderTx()">
+              </div>
+              <div id="tx-lista"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVENTARIO -->
+      <div id="panel-inventario" class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div class="section-title" style="margin:0">Productos y materiales</div>
+          <button class="btn-primary" onclick="openModal('producto')">+ Agregar producto</button>
+        </div>
+        <div class="inv-grid" id="inv-grid"></div>
+      </div>
+
+      <!-- PROMOCIONES -->
+      <div id="panel-promociones" class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div class="section-title" style="margin:0">Campañas y promociones</div>
+          <button class="btn-primary" onclick="openModal('promo')">+ Nueva promoción</button>
+        </div>
+        <div id="promos-list"></div>
+      </div>
+
+      <!-- MENSAJES -->
+      <div id="panel-mensajes" class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div class="section-title" style="margin:0">Plantillas de mensajes</div>
+          <button class="btn-primary" onclick="openModal('mensaje')">+ Nuevo mensaje</button>
+        </div>
+        <p style="font-size:13px;color:var(--rv-muted);margin-bottom:16px;">Copia el mensaje y envíalo por WhatsApp. Sustituye los campos en [corchetes].</p>
+        <div class="msg-search-bar">
+          <input type="text" class="msg-search-input" id="msg-search" placeholder="Buscar plantilla..." oninput="filterMensajes()">
+        </div>
+        <div id="msg-list"></div>
+      </div>
+
+      <!-- REGISTROS ONLINE -->
+      <div id="panel-registros" class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="section-title" style="margin:0">Registros de clientas 🌸</div>
+          <button class="btn-secondary" onclick="cargarRegistros()" id="btn-reload-reg">↻ Actualizar</button>
+        </div>
+        <p style="font-size:13px;color:var(--rv-muted);margin-bottom:20px;">Clientas que se registraron desde el formulario. Apruébalas con un clic para agregarlas a tu lista.</p>
+
+        <!-- Estado de conexión -->
+        <div id="reg-status" style="display:none;margin-bottom:16px;"></div>
+
+        <!-- Lista de pendientes -->
+        <div id="registros-pendientes"></div>
+
+        <!-- Separador aprobadas -->
+        <div id="registros-aprobadas-wrap" style="display:none;margin-top:28px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="font-size:13px;font-weight:500;color:var(--rv-muted)">Ya aprobadas este mes</div>
+            <div style="flex:1;height:1px;background:rgba(201,168,130,0.15)"></div>
+          </div>
+          <div id="registros-aprobadas"></div>
+        </div>
+      </div>
+
+      <!-- REPORTES -->
+      <div id="panel-reportes" class="panel">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Citas completadas</div>
+            <div class="metric-value" id="rep-citas">0</div>
+            <div class="metric-sub">Total registradas</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Clientes únicos</div>
+            <div class="metric-value" id="rep-clientes">0</div>
+            <div class="metric-sub">En el sistema</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Ticket promedio</div>
+            <div class="metric-value" id="rep-ticket">$0</div>
+            <div class="metric-sub">Por cita de ingreso</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Productos en stock bajo</div>
+            <div class="metric-value" id="rep-stockbajo">0</div>
+            <div class="metric-sub down">Necesitan reposición</div>
+          </div>
+        </div>
+        <div class="reports-grid">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Servicios por tipo</div></div>
+            <div class="card-body"><div class="chart-container" style="height:200px;"><canvas id="chartServicios"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Clientes por tipo</div></div>
+            <div class="card-body"><div class="chart-container" style="height:200px;"><canvas id="chartClientes"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Alertas del sistema</div></div>
+            <div class="card-body" id="rep-alertas"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Exportar datos</div></div>
+            <div class="card-body">
+              <p style="font-size:13px;color:var(--rv-muted);margin-bottom:16px;">Descarga tus datos para contabilidad.</p>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-secondary" style="width:100%;text-align:left;" onclick="exportarCSV()">📊 Ingresos y gastos (CSV)</button>
+                <button class="btn-secondary" style="width:100%;text-align:left;" onclick="exportarClientesCSV()">👥 Listado de clientes (CSV)</button>
+                <button class="btn-secondary" style="width:100%;text-align:left;" onclick="exportarCitasCSV()">📅 Citas del mes (CSV)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </div><!-- /main-area -->
+</div><!-- /erp-root -->
+
+<!-- ============ MODALES ============ -->
+
+<!-- Modal Nueva Cita -->
+<div class="modal-overlay" id="modal-cita">
+  <div class="modal">
+    <div class="modal-title" id="modal-cita-title">Nueva Cita</div>
+    <div class="form-group">
+      <label class="form-label">Cliente</label>
+      <input type="text" class="form-input" id="cita-cliente" placeholder="Nombre de la cliente" list="clientes-datalist">
+      <datalist id="clientes-datalist"></datalist>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input type="date" class="form-input" id="cita-fecha">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora</label>
+        <input type="time" class="form-input" id="cita-hora">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Servicio</label>
+      <select class="form-input" id="cita-servicio">
+        <option>Maquillaje de novia</option>
+        <option>Prueba de maquillaje</option>
+        <option>Maquillaje social</option>
+        <option>Maquillaje XV años</option>
+        <option>Maquillaje artístico</option>
+        <option>Curso de maquillaje</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ubicación</label>
+      <select class="form-input" id="cita-ubicacion">
+        <option>Studio Rocío Vene</option>
+        <option>A domicilio</option>
+        <option>Hotel / Venue</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Precio (MXN)</label>
+        <input type="number" class="form-input" id="cita-precio" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select class="form-input" id="cita-estado">
+          <option value="Confirmada">Confirmada</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Cancelada">Cancelada</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas</label>
+      <input type="text" class="form-input" id="cita-notas" placeholder="Notas adicionales...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-cita')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarCita()">Guardar cita</button>
+    </div>
+    <input type="hidden" id="cita-edit-id">
+  </div>
+</div>
+
+<!-- Modal Nueva/Editar Cliente -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-title" id="modal-cliente-title">Nueva Cliente</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nombre completo</label>
+        <input type="text" class="form-input" id="c-nombre" placeholder="Nombre completo">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teléfono / WhatsApp</label>
+        <input type="tel" class="form-input" id="c-tel" placeholder="+52 477...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="c-email" placeholder="correo@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cumpleaños</label>
+        <input type="date" class="form-input" id="c-cumple">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo de cliente</label>
+        <select class="form-input" id="c-tipo">
+          <option>Nueva</option>
+          <option>Recurrente</option>
+          <option>VIP</option>
+          <option>Referido</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Servicio preferido</label>
+        <select class="form-input" id="c-servicio">
+          <option>Maquillaje social</option>
+          <option>Maquillaje de novia</option>
+          <option>XV años</option>
+          <option>Cursos</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas / Preferencias</label>
+      <input type="text" class="form-input" id="c-notas" placeholder="Alergias, preferencias de estilo, colores...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarCliente()">Guardar cliente</button>
+    </div>
+    <input type="hidden" id="c-edit-id">
+  </div>
+</div>
+
+<!-- Modal Perfil Cliente -->
+<div class="modal-overlay" id="modal-perfil">
+  <div class="modal profile-modal">
+    <div class="profile-header">
+      <div class="profile-avatar" id="perfil-avatar"></div>
+      <div style="flex:1">
+        <div class="profile-name" id="perfil-nombre"></div>
+        <div class="profile-meta" id="perfil-meta"></div>
+        <div style="margin-top:8px;display:flex;gap:8px;" id="perfil-actions"></div>
+      </div>
+      <button class="btn-icon" onclick="closeModal('modal-perfil')">✕</button>
+    </div>
+    <div class="profile-stats" id="perfil-stats"></div>
+    <div class="card-title" style="margin-bottom:12px;">Historial de servicios</div>
+    <div id="perfil-historial">
+      <div class="empty-state"><div class="empty-icon">💄</div>Sin servicios registrados aún</div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="closeModal('modal-perfil')">Cerrar</button>
+      <button class="btn-primary" onclick="editarClienteDesde()">✏️ Editar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Producto -->
+<div class="modal-overlay" id="modal-producto">
+  <div class="modal">
+    <div class="modal-title" id="modal-prod-title">Agregar producto</div>
+    <div class="form-group">
+      <label class="form-label">Nombre del producto</label>
+      <input type="text" class="form-input" id="p-nombre" placeholder="Ej: Base líquida MAC">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <select class="form-input" id="p-cat">
+          <option>Base / Primer</option>
+          <option>Labiales</option>
+          <option>Brochas / Esponjas</option>
+          <option>Sombras</option>
+          <option>Rubor / Contorno</option>
+          <option>Fijadores</option>
+          <option>Pestañas</option>
+          <option>Desinfectantes</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Unidad</label>
+        <select class="form-input" id="p-uni">
+          <option>piezas</option>
+          <option>ml</option>
+          <option>g</option>
+          <option>pares</option>
+          <option>sets</option>
+          <option>litros</option>
+          <option>paletas</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Stock actual</label>
+        <input type="number" class="form-input" id="p-stock" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Stock mínimo (alerta)</label>
+        <input type="number" class="form-input" id="p-min" placeholder="3">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-producto')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarProducto()">Guardar</button>
+    </div>
+    <input type="hidden" id="p-edit-id">
+  </div>
+</div>
+
+<!-- Modal Promo -->
+<div class="modal-overlay" id="modal-promo">
+  <div class="modal">
+    <div class="modal-title" id="modal-promo-title">Nueva Promoción</div>
+    <div class="form-group">
+      <label class="form-label">Nombre de la campaña</label>
+      <input type="text" class="form-input" id="promo-nombre" placeholder="Ej: Novias Diciembre 2025">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha inicio</label>
+        <input type="date" class="form-input" id="promo-inicio">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha fin</label>
+        <input type="date" class="form-input" id="promo-fin">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo de descuento</label>
+        <select class="form-input" id="promo-tipo">
+          <option>% de descuento</option>
+          <option>Monto fijo</option>
+          <option>2x1</option>
+          <option>Regalo incluido</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor</label>
+        <input type="number" class="form-input" id="promo-valor" placeholder="15">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Servicios aplicables</label>
+      <input type="text" class="form-input" id="promo-servicios" placeholder="Ej: Novia, Prueba">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select class="form-input" id="promo-estado">
+        <option value="Activa">Activa</option>
+        <option value="Borrador">Borrador</option>
+        <option value="Finalizada">Finalizada</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-promo')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarPromo()">Guardar promoción</button>
+    </div>
+    <input type="hidden" id="promo-edit-id">
+  </div>
+</div>
+
+<!-- Modal Invitar Cliente -->
+<div class="modal-overlay" id="modal-invitar">
+  <div class="modal">
+    <div class="modal-title">📨 Invitar cliente a registrarse</div>
+    <p style="font-size:13px;color:var(--rv-muted);margin-bottom:16px;">Tu cliente llena un formulario de 3 pasos muy bonito. Sus datos entran <strong>automáticamente</strong> a tu sistema. Puedes enviarle el enlace por WhatsApp.</p>
+
+    <div style="background:var(--rv-cream);border-radius:10px;padding:14px 16px;margin-bottom:16px;border:1px dashed rgba(201,168,130,0.4);">
+      <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--rv-muted);margin-bottom:6px;">Vista previa del formulario</div>
+      <div style="font-size:13px;color:var(--rv-deep);margin-bottom:10px;">El formulario tiene 3 pasos: datos personales → tipo de servicio → preferencias. Diseño elegante de marca.</div>
+      <button class="btn-secondary" style="width:100%" onclick="abrirRegistro()">👁 Ver formulario como cliente</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Número de WhatsApp de la cliente</label>
+      <input type="tel" class="form-input" id="inv-tel" placeholder="+52 477 123 4567" oninput="updateInvMsg()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre de la cliente (opcional)</label>
+      <input type="text" class="form-input" id="inv-nombre" placeholder="Ej: Valentina" oninput="updateInvMsg()">
+    </div>
+    <div id="inv-msg-preview" style="background:var(--rv-cream);border-radius:10px;padding:14px;font-size:13px;color:var(--rv-deep);line-height:1.6;margin-bottom:16px;border-left:3px solid #25D366;white-space:pre-line;"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-invitar')">Cerrar</button>
+      <button class="btn-copy" onclick="copyInvLink()">🔗 Copiar enlace</button>
+      <a id="inv-wa-btn" class="wa-btn" href="#" target="_blank">📱 Enviar por WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nuevo/Editar Mensaje -->
+<div class="modal-overlay" id="modal-mensaje">
+  <div class="modal modal-msg">
+    <div class="modal-title" id="modal-msg-title">Nueva plantilla de mensaje</div>
+    <div class="form-group">
+      <label class="form-label">Tipo / nombre del mensaje</label>
+      <input type="text" class="form-input" id="msg-tipo-nuevo" placeholder="Ej: Cobro pendiente, Post XV años...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Texto del mensaje</label>
+      <textarea class="form-input" id="msg-texto-nuevo" rows="6" placeholder="Usa [Nombre], [servicio], [fecha], [hora] como variables..."></textarea>
+    </div>
+    <p style="font-size:11px;color:var(--rv-muted);margin-top:-8px;margin-bottom:16px;">💡 Variables disponibles: [Nombre] [servicio] [fecha] [hora] [lugar] [mes] [monto]</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-mensaje')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarMensaje()">Guardar plantilla</button>
+    </div>
+    <input type="hidden" id="msg-edit-id">
+  </div>
+</div>
+
+<!-- PÁGINA REGISTRO CLIENTE (Vista cliente) -->
+<div class="reg-page" id="reg-page">
+  <button class="reg-close-btn" onclick="cerrarRegistro()">✕ Cerrar vista previa</button>
+  <div class="reg-container">
+    <div class="reg-brand">
+      <div class="reg-logo">Rocío Vene Makeup</div>
+      <p>Registro de cliente</p>
+    </div>
+    <div class="reg-card">
+      <div class="reg-progress">
+        <div class="reg-prog-dot done" id="rpd-1"></div>
+        <div class="reg-prog-dot" id="rpd-2"></div>
+        <div class="reg-prog-dot" id="rpd-3"></div>
+      </div>
+
+      <!-- Paso 1: datos personales -->
+      <div class="reg-step active" id="reg-step-1">
+        <div class="reg-title">¡Hola! 🌸 Cuéntame de ti</div>
+        <div class="reg-sub">Solo tarda 2 minutos. Así podré darte una atención completamente personalizada.</div>
+        <div class="form-group">
+          <label class="form-label">Nombre completo *</label>
+          <input type="text" class="form-input" id="reg-nombre" placeholder="Tu nombre completo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp *</label>
+          <input type="tel" class="form-input" id="reg-tel" placeholder="+52 477 123 4567">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email (opcional)</label>
+          <input type="email" class="form-input" id="reg-email" placeholder="correo@email.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de cumpleaños 🎂 (opcional)</label>
+          <input type="date" class="form-input" id="reg-cumple">
+        </div>
+        <button class="btn-primary" style="width:100%;margin-top:8px;" onclick="regNextStep(2)">Siguiente →</button>
+      </div>
+
+      <!-- Paso 2: servicio de interés -->
+      <div class="reg-step" id="reg-step-2">
+        <div class="reg-title">¿Qué tipo de maquillaje buscas? 💄</div>
+        <div class="reg-sub">Selecciona el que más se ajuste a lo que tienes en mente.</div>
+        <div class="reg-services" id="reg-servicios-grid">
+          <button class="reg-service-btn" onclick="selectRegService(this,'Maquillaje de novia')">💍 Novia</button>
+          <button class="reg-service-btn" onclick="selectRegService(this,'Prueba de maquillaje')">🪞 Prueba / ensayo</button>
+          <button class="reg-service-btn" onclick="selectRegService(this,'Maquillaje social')">🥂 Social / fiesta</button>
+          <button class="reg-service-btn" onclick="selectRegService(this,'Maquillaje XV años')">🌹 XV Años</button>
+          <button class="reg-service-btn" onclick="selectRegService(this,'Maquillaje artístico')">🎨 Artístico / editorial</button>
+          <button class="reg-service-btn" onclick="selectRegService(this,'Curso de maquillaje')">📚 Quiero aprender</button>
+        </div>
+        <input type="hidden" id="reg-servicio-sel">
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button class="btn-secondary" style="flex:1" onclick="regNextStep(1)">← Atrás</button>
+          <button class="btn-primary" style="flex:2" onclick="regNextStep(3)">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- Paso 3: preferencias -->
+      <div class="reg-step" id="reg-step-3">
+        <div class="reg-title">Últimos detalles ✨</div>
+        <div class="reg-sub">Para conocerte mejor y darte la mejor experiencia.</div>
+        <div class="form-group">
+          <label class="form-label">¿Cómo nos encontraste?</label>
+          <select class="form-input" id="reg-fuente">
+            <option value="">Selecciona una opción</option>
+            <option>Instagram</option>
+            <option>Recomendación de amiga</option>
+            <option>Facebook</option>
+            <option>Google</option>
+            <option>TikTok</option>
+            <option>Ya soy clienta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">¿Tienes alguna alergia o preferencia que deba saber? (opcional)</label>
+          <textarea class="form-input" id="reg-notas" rows="3" placeholder="Ej: Soy alérgica al latex, prefiero look natural..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn-secondary" style="flex:1" onclick="regNextStep(2)">← Atrás</button>
+          <button class="btn-primary" style="flex:2" onclick="enviarRegistro()">✨ Completar registro</button>
+        </div>
+      </div>
+
+      <!-- Paso 4: éxito -->
+      <div class="reg-step" id="reg-step-4">
+        <div class="reg-success">
+          <div class="check">🌸</div>
+          <h2>¡Listo, <span id="reg-nombre-final"></span>!</h2>
+          <p>Tu registro fue recibido con éxito. Rocío se pondrá en contacto contigo muy pronto para agendar tu cita.<br><br>¡Gracias por confiar en <strong>Rocío Vene Makeup</strong>! 💄✨</p>
+          <div style="margin-top:24px;padding:16px;background:var(--rv-cream);border-radius:12px;text-align:left;">
+            <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--rv-muted);margin-bottom:8px;">Tu información registrada</div>
+            <div id="reg-resumen" style="font-size:13px;color:var(--rv-deep);line-height:1.8;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:var(--rv-muted);margin-top:20px;">© Rocío Vene Makeup · Información confidencial y segura</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// STORAGE HELPERS
+// ============================================================
+const KEYS = { clientes:'rv_clientes', citas:'rv_citas', txs:'rv_txs', productos:'rv_productos', promos:'rv_promos', mensajes:'rv_mensajes' };
+
+function load(key) {
+  try { return JSON.parse(localStorage.getItem(KEYS[key])) || []; } catch { return []; }
+}
+function save(key, data) {
+  localStorage.setItem(KEYS[key], JSON.stringify(data));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ============================================================
+// SEED DATA (solo si no hay datos)
+// ============================================================
+function seedIfEmpty() {
+  if (!load('clientes').length) {
+    const cls = [
+      { id:uid(), nombre:'Valentina Torres', tel:'+52 477 100 0001', email:'valentina@mail.com', cumple:'1990-03-15', tipo:'VIP', servicio:'Maquillaje de novia', notas:'Sin aceites en la piel', creado: Date.now() },
+      { id:uid(), nombre:'Camila Herrera', tel:'+52 477 100 0002', email:'', cumple:'1995-06-22', tipo:'Recurrente', servicio:'Maquillaje social', notas:'', creado: Date.now() },
+      { id:uid(), nombre:'Daniela Ríos', tel:'+52 477 100 0003', email:'', cumple:'1998-04-08', tipo:'Nueva', servicio:'Maquillaje XV años', notas:'', creado: Date.now() },
+      { id:uid(), nombre:'Sofía Medina', tel:'+52 477 100 0004', email:'', cumple:'1993-09-30', tipo:'Referido', servicio:'Maquillaje social', notas:'', creado: Date.now() },
+      { id:uid(), nombre:'Ana Sofía López', tel:'+52 477 100 0005', email:'', cumple:'1991-11-14', tipo:'VIP', servicio:'Maquillaje de novia', notas:'', creado: Date.now() },
+      { id:uid(), nombre:'Mariana García', tel:'+52 477 100 0006', email:'', cumple:'1994-02-03', tipo:'VIP', servicio:'Curso de maquillaje', notas:'', creado: Date.now() },
+      { id:uid(), nombre:'Fernanda Ruiz', tel:'+52 477 100 0007', email:'', cumple:'1997-08-19', tipo:'Recurrente', servicio:'Maquillaje social', notas:'', creado: Date.now() },
+      { id:uid(), nombre:'Alejandra Mora', tel:'+52 477 100 0008', email:'', cumple:'1999-12-07', tipo:'Nueva', servicio:'Maquillaje social', notas:'', creado: Date.now() },
+    ];
+    save('clientes', cls);
+
+    const today = new Date(); const yy = today.getFullYear(); const mm = String(today.getMonth()+1).padStart(2,'0'); const dd = String(today.getDate()).padStart(2,'0');
+    const todayStr = `${yy}-${mm}-${dd}`;
+    const cits = [
+      { id:uid(), cliente:'Valentina Torres', fecha:todayStr, hora:'09:00', servicio:'Maquillaje de novia', ubicacion:'Hotel / Venue', precio:4800, estado:'Confirmada', notas:'Suite presidencial' },
+      { id:uid(), cliente:'Camila Herrera', fecha:todayStr, hora:'11:30', servicio:'Maquillaje social', ubicacion:'Studio Rocío Vene', precio:1600, estado:'Confirmada', notas:'' },
+      { id:uid(), cliente:'Daniela Ríos', fecha:todayStr, hora:'14:00', servicio:'Maquillaje XV años', ubicacion:'A domicilio', precio:2200, estado:'Pendiente', notas:'' },
+      { id:uid(), cliente:'Sofía Medina', fecha:todayStr, hora:'16:30', servicio:'Prueba de maquillaje', ubicacion:'Studio Rocío Vene', precio:900, estado:'Confirmada', notas:'' },
+      { id:uid(), cliente:'Ana Sofía López', fecha:`${yy}-${mm}-12`, hora:'10:00', servicio:'Maquillaje de novia', ubicacion:'Hotel / Venue', precio:5500, estado:'Confirmada', notas:'' },
+      { id:uid(), cliente:'Mariana García', fecha:`${yy}-${mm}-15`, hora:'13:00', servicio:'Curso de maquillaje', ubicacion:'Studio Rocío Vene', precio:3200, estado:'Pendiente', notas:'' },
+    ];
+    save('citas', cits);
+
+    const txs2 = [
+      { id:uid(), tipo:'ingreso', concepto:'Maquillaje novia Valentina', monto:4800, fecha:todayStr, pago:'Transferencia' },
+      { id:uid(), tipo:'ingreso', concepto:'Maquillaje social Camila', monto:1600, fecha:todayStr, pago:'Efectivo' },
+      { id:uid(), tipo:'gasto', concepto:'Primer facial MAC x3', monto:780, fecha:`${yy}-${mm}-07`, pago:'Transferencia' },
+      { id:uid(), tipo:'ingreso', concepto:'Prueba maquillaje Sofía', monto:900, fecha:`${yy}-${mm}-05`, pago:'Efectivo' },
+      { id:uid(), tipo:'gasto', concepto:'Brochas Sigma Set', monto:1250, fecha:`${yy}-${mm}-04`, pago:'Tarjeta' },
+    ];
+    save('txs', txs2);
+
+    const prods = [
+      { id:uid(), nombre:'Base líquida MAC', cat:'Base / Primer', stock:8, min:3, uni:'piezas', icon:'🎨' },
+      { id:uid(), nombre:'Primer facial', cat:'Base / Primer', stock:2, min:3, uni:'piezas', icon:'✨' },
+      { id:uid(), nombre:'Labiales Fenty', cat:'Labiales', stock:15, min:5, uni:'piezas', icon:'💄' },
+      { id:uid(), nombre:'Brochas Sigma Set', cat:'Brochas / Esponjas', stock:4, min:2, uni:'sets', icon:'🖌️' },
+      { id:uid(), nombre:'Fijador NYX', cat:'Fijadores', stock:6, min:2, uni:'piezas', icon:'💦' },
+      { id:uid(), nombre:'Pestañas naturales', cat:'Pestañas', stock:0, min:5, uni:'pares', icon:'👁️' },
+      { id:uid(), nombre:'Sombras ABH Palette', cat:'Sombras', stock:3, min:2, uni:'paletas', icon:'🎭' },
+      { id:uid(), nombre:'Alcohol desinfectante', cat:'Desinfectantes', stock:2, min:2, uni:'litros', icon:'🧴' },
+      { id:uid(), nombre:'Rubor Charlotte Tilbury', cat:'Rubor / Contorno', stock:5, min:2, uni:'piezas', icon:'🌸' },
+    ];
+    save('productos', prods);
+
+    const promos = [
+      { id:uid(), nombre:'Novias Mayo 2025', inicio:'2025-05-01', fin:'2025-05-31', tipo:'% de descuento', valor:15, servicios:'Maquillaje novia, Prueba', estado:'Activa' },
+      { id:uid(), nombre:'Social Primavera', inicio:'2025-04-01', fin:'2025-04-30', tipo:'% de descuento', valor:10, servicios:'Maquillaje social', estado:'Activa' },
+    ];
+    save('promos', promos);
+
+    const mensajes = [
+      { id:uid(), tipo:'Confirmación de cita', texto:'¡Hola [Nombre]! 💄✨ Te confirmo tu cita con Rocío Vene Makeup el [fecha] a las [hora] para [servicio]. Si tienes alguna duda o necesitas reagendar, escríbeme. ¡Te espero con mucho cariño! 🌸' },
+      { id:uid(), tipo:'Recordatorio 24h antes', texto:'¡Hola [Nombre]! 🌟 Te recuerdo que mañana tienes tu cita de [servicio] a las [hora] en [lugar]. No olvides venir con la cara limpia y sin cremas. ¡Nos vemos pronto! 💕 — Rocío Vene' },
+      { id:uid(), tipo:'Seguimiento post-servicio', texto:'¡Hola [Nombre]! Fue un placer tenerte hoy 💖 Espero que hayas quedado encantada con tu maquillaje. Si te gustaría dejar una reseña en Google o Instagram te lo agradecería muchísimo. ✨ — Rocío' },
+      { id:uid(), tipo:'Felicitación de cumpleaños 🎂', texto:'¡Feliz cumpleaños, [Nombre]! 🎂🌸 En tu día especial quiero que brilles más que nunca. Como regalo, tienes un 15% de descuento en tu próximo maquillaje este mes. ¡Escríbeme para agendar! Con cariño, Rocío 💄' },
+      { id:uid(), tipo:'Reactivar cliente sin contacto', texto:'¡Hola [Nombre]! 💋 Hace tiempo que no sé de ti y he pensado en ti. Tengo fechas disponibles para [mes] y me encantaría volverte a ver. ¡Escríbeme! — Rocío 🌸' },
+      { id:uid(), tipo:'Promoción especial', texto:'¡Hola [Nombre]! 🌟 Quería avisarte antes que a nadie: tengo una promoción especial para [ocasión]: [descripción de la oferta]. Solo hay [X] lugares. ¡Escríbeme hoy! 💄 — Rocío Vene Makeup' },
+      { id:uid(), tipo:'Cobro pendiente (amable)', texto:'¡Hola [Nombre]! 💕 Espero que todo esté bien. Quería recordarte con mucho cariño que hay un pago pendiente de $[monto] de tu servicio del [fecha]. Cuando puedas me avisas por aquí. ¡Gracias! — Rocío 🌸' },
+      { id:uid(), tipo:'Bienvenida nueva cliente', texto:'¡Hola [Nombre]! 🌸 Bienvenida a la familia Rocío Vene Makeup. Estoy muy emocionada de trabajar contigo. Cualquier pregunta sobre tu cita, aquí estoy. ¡Pronto te veo! 💄 — Rocío' },
+      { id:uid(), tipo:'Reagendar cita', texto:'¡Hola [Nombre]! 💄 Por circunstancias imprevistas necesito reagendar nuestra cita del [fecha]. Tengo disponibilidad el [nueva fecha] a las [hora]. ¿Te funciona? Disculpa el inconveniente 🙏 — Rocío' },
+      { id:uid(), tipo:'Invitación a dejar reseña', texto:'¡Hola [Nombre]! Espero que tu maquillaje del [fecha] te haya encantado ✨ Si quieres hacerme el favor de dejar una reseña en mi Instagram o Google, me ayudaría muchísimo. ¡Gracias desde el corazón! 🌸 — Rocío' },
+      { id:uid(), tipo:'Confirmación pago recibido', texto:'¡Hola [Nombre]! ✅ Confirmo que recibí tu pago de $[monto] correspondiente a [servicio]. ¡Quedamos todas listas! Nos vemos el [fecha]. 💄 — Rocío Vene' },
+      { id:uid(), tipo:'Paquete novia (cotización)', texto:'¡Hola [Nombre]! 💍 Fue un gusto platicar contigo. Te comparto el paquete de novia: Maquillaje novia + prueba desde $[monto]. Incluye [detalles]. ¿Quieres apartar tu fecha? ¡Quedan pocos espacios! — Rocío 🌸' },
+    ];
+    save('mensajes', mensajes);
+  }
+}
+
+seedIfEmpty();
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const panelTitles = { dashboard:'Dashboard', agenda:'Agenda & Citas', clientes:'Clientes', finanzas:'Finanzas', inventario:'Inventario', promociones:'Promociones', mensajes:'Mensajes Automáticos', registros:'Registros Online', reportes:'Reportes & Métricas' };
+let currentPanel = 'dashboard';
+
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  document.getElementById('topbar-title').textContent = panelTitles[id] || id;
+  currentPanel = id;
+  if (id === 'clientes') renderClientes();
+  if (id === 'finanzas') renderTx();
+  if (id === 'inventario') renderInventario();
+  if (id === 'agenda') renderAgenda();
+  if (id === 'promociones') renderPromos();
+  if (id === 'mensajes') renderMensajes();
+  if (id === 'registros') cargarRegistros();
+  if (id === 'reportes') renderReportes();
+  if (id === 'dashboard') renderDashboard();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function _openModal(type) {
+  if (!m) return;
+  m.classList.add('open');
+  const today = new Date().toISOString().split('T')[0];
+  if (type === 'cita') {
+    document.getElementById('cita-fecha').value = today;
+    document.getElementById('cita-edit-id').value = '';
+    document.getElementById('modal-cita-title').textContent = 'Nueva Cita';
+    // fill datalist
+    const dl = document.getElementById('clientes-datalist');
+    dl.innerHTML = load('clientes').map(c => `<option value="${c.nombre}">`).join('');
+  }
+  if (type === 'cliente') {
+    document.getElementById('c-edit-id').value = '';
+    document.getElementById('modal-cliente-title').textContent = 'Nueva Cliente';
+    ['c-nombre','c-tel','c-email','c-notas'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('c-cumple').value = '';
+    document.getElementById('c-tipo').value = 'Nueva';
+  }
+  if (type === 'tx') {
+    document.getElementById('tx-fecha').value = today;
+  }
+  if (type === 'invitar') updateInvMsg();
+  if (type === 'producto') {
+    document.getElementById('p-edit-id').value = '';
+    document.getElementById('modal-prod-title').textContent = 'Agregar producto';
+    ['p-nombre','p-stock','p-min'].forEach(id => document.getElementById(id).value = '');
+  }
+  if (type === 'promo') {
+    document.getElementById('promo-edit-id').value = '';
+    document.getElementById('modal-promo-title').textContent = 'Nueva Promoción';
+    ['promo-nombre','promo-inicio','promo-fin','promo-valor','promo-servicios'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('promo-estado').value = 'Activa';
+  }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ============================================================
+// FINANZAS FILTRO STATE
+// ============================================================
+let finFiltro = 'todo';
+
+function setFinFiltro(f, btn) {
+  finFiltro = f;
+  document.querySelectorAll('.fin-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTx();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderBirthdayBanner() {
+  const today = new Date().toISOString().split('T')[0];
+  const todayMMDD = today.slice(5);
+  const clientes = load('clientes');
+  const cumplean = clientes.filter(c => c.cumple && c.cumple.slice(5) === todayMMDD);
+  // También próximos 7 días
+  const proximos = clientes.filter(c => {
+    if (!c.cumple) return false;
+    const mmdd = c.cumple.slice(5);
+    if (mmdd === todayMMDD) return false;
+    const thisYear = new Date().getFullYear();
+    const cumpleDate = new Date(`${thisYear}-${mmdd}T12:00`);
+    const diff = (cumpleDate - new Date()) / (1000*60*60*24);
+    return diff > 0 && diff <= 7;
+  });
+  const bannerDiv = document.getElementById('birthday-banner');
+  if (!bannerDiv) return;
+  if (!cumplean.length && !proximos.length) { bannerDiv.innerHTML = ''; return; }
+  let html = `<div class="birthday-banner">
+    <div class="bb-icon">🎂</div>
+    <div>
+      <div class="bb-title">${cumplean.length ? `¡${cumplean.map(c=>c.nombre.split(' ')[0]).join(' y ')} cumplen hoy!` : `Cumpleaños próximos`}</div>
+      <div class="bb-sub">${cumplean.length ? 'Envíales un mensaje especial 💕' : `${proximos.length} cliente(s) en los próximos 7 días`}</div>
+    </div>
+    <div class="bb-clients">`;
+  const todos = [...cumplean, ...proximos];
+  todos.slice(0,4).forEach(c => {
+    const tel = c.tel?.replace(/[^0-9]/g,'') || '';
+    const msg = `¡Feliz cumpleaños, ${c.nombre.split(' ')[0]}! 🎂🌸 En tu día especial quiero que brilles más que nunca. Como regalo, tienes un 15% de descuento en tu próximo maquillaje este mes. ¡Escríbeme para agendar! Con cariño, Rocío 💄`;
+    html += `<div class="bb-chip" onclick="window.open('https://wa.me/${tel}?text=${encodeURIComponent(msg)}','_blank')" title="Enviar mensaje de cumpleaños por WhatsApp">
+      ${iniciales(c.nombre)} ${c.nombre.split(' ')[0]} 📱
+    </div>`;
+  });
+  html += '</div></div>';
+  bannerDiv.innerHTML = html;
+}
+
+function renderDashboard() {
+  const citas = load('citas'); const txs = load('txs'); const clientes = load('clientes');
+  renderBirthdayBanner();
+  const today = new Date().toISOString().split('T')[0];
+  const thisMonth = today.slice(0,7);
+
+  const citasHoy = citas.filter(c => c.fecha === today);
+  const citasMes = citas.filter(c => c.fecha && c.fecha.startsWith(thisMonth));
+  const pendientes = citasMes.filter(c => c.estado === 'Pendiente').length;
+
+  const ingresosMes = txs.filter(t => t.fecha && t.fecha.startsWith(thisMonth) && t.tipo === 'ingreso').reduce((a,t) => a + t.monto, 0);
+  const ingresosHoy = txs.filter(t => t.fecha === today && t.tipo === 'ingreso').reduce((a,t) => a + t.monto, 0);
+
+  document.getElementById('dash-hoy').textContent = '$' + ingresosHoy.toLocaleString('es-MX');
+  document.getElementById('dash-hoy-sub').textContent = citasHoy.length + ' cita(s) hoy';
+  document.getElementById('dash-mes').textContent = '$' + ingresosMes.toLocaleString('es-MX');
+  document.getElementById('dash-citas').textContent = citasMes.length;
+  document.getElementById('dash-pendientes').textContent = pendientes + ' pendiente(s)';
+  document.getElementById('dash-clientes').textContent = clientes.length;
+  document.getElementById('dash-clientes-sub').textContent = clientes.filter(c => c.tipo === 'VIP').length + ' VIP';
+
+  // Citas hoy
+  const divHoy = document.getElementById('dash-citas-hoy');
+  if (citasHoy.length === 0) {
+    divHoy.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div>No hay citas para hoy</div>';
+  } else {
+    divHoy.innerHTML = citasHoy.map(c => {
+      const badgeClass = c.estado === 'Confirmada' ? 'badge-confirmed' : c.estado === 'Cancelada' ? 'badge-cancelled' : 'badge-pending';
+      const [h,min] = c.hora.split(':'); const ampm = parseInt(h) >= 12 ? 'pm' : 'am';
+      const h12 = parseInt(h) % 12 || 12;
+      return `<div class="cita-item">
+        <div class="cita-hora">${h12}:${min}<small>${ampm}</small></div>
+        <div class="cita-info">
+          <div class="cita-nombre">${c.cliente}</div>
+          <div class="cita-servicio">${c.servicio} · ${c.ubicacion}</div>
+        </div>
+        <span class="cita-badge ${badgeClass}">${c.estado}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // VIP
+  const vips = clientes.filter(c => c.tipo === 'VIP').slice(0, 3);
+  const divVip = document.getElementById('dash-vip');
+  if (!vips.length) {
+    divVip.innerHTML = '<div class="empty-state" style="padding:16px"><div class="empty-icon">⭐</div>Sin clientes VIP aún</div>';
+  } else {
+    divVip.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;">' + vips.map(c => {
+      const ini = iniciales(c.nombre);
+      const clienteCitas = load('citas').filter(ci => ci.cliente === c.nombre);
+      const total = clienteCitas.reduce((a,ci) => a + (ci.precio||0), 0);
+      return `<div style="display:flex;align-items:center;gap:10px;">
+        <div class="client-avatar">${ini}</div>
+        <div>
+          <div style="font-size:13px;font-weight:500">${c.nombre}</div>
+          <div style="font-size:11px;color:var(--rv-muted)">${clienteCitas.length} servicios · $${total.toLocaleString('es-MX')}</div>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  // Alertas
+  const alertas = [];
+  const sinStock = load('productos').filter(p => p.stock === 0);
+  const stockBajo = load('productos').filter(p => p.stock > 0 && p.stock <= p.min);
+  if (sinStock.length) alertas.push({ cls:'urgent', tipo:'urgent', txt: `Sin stock: ${sinStock.map(p=>p.nombre).join(', ')}` });
+  if (stockBajo.length) alertas.push({ cls:'warn', tipo:'warn', txt: `Stock bajo: ${stockBajo.map(p=>p.nombre).join(', ')}` });
+  const pendCitas = citasHoy.filter(c => c.estado === 'Pendiente');
+  pendCitas.forEach(c => alertas.push({ cls:'urgent', tipo:'urgent', txt:`${c.cliente} no ha confirmado cita ${c.hora}` }));
+  // Cumpleaños hoy
+  const todayMMDD = today.slice(5);
+  const cumplean = clientes.filter(c => c.cumple && c.cumple.slice(5) === todayMMDD);
+  cumplean.forEach(c => alertas.push({ cls:'ok', tipo:'ok', txt:`Cumpleaños hoy: ${c.nombre} 🎂` }));
+  if (!alertas.length) alertas.push({ cls:'ok', tipo:'ok', txt:'Todo en orden 🌸' });
+
+  document.getElementById('dash-alertas').innerHTML = alertas.map(a =>
+    `<div class="alert-item alert-${a.tipo}"><div class="alert-dot ${a.tipo}"></div><span>${a.txt}</span></div>`
+  ).join('');
+
+  // Badge agenda
+  document.getElementById('badge-agenda').textContent = citasHoy.length;
+  // Badge inventario
+  const lowCount = load('productos').filter(p => p.stock <= p.min).length;
+  const badgeInv = document.getElementById('badge-inv');
+  badgeInv.textContent = lowCount;
+  badgeInv.style.display = lowCount ? '' : 'none';
+
+  renderChartFinanzas();
+}
+
+function renderChartFinanzas() {
+  const ctx = document.getElementById('chartFinanzas');
+  if (!ctx) return;
+  const txs = load('txs');
+  const now = new Date(); const y = now.getFullYear();
+  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const ingresos = Array(12).fill(0); const gastos = Array(12).fill(0);
+  txs.forEach(t => {
+    if (!t.fecha) return;
+    const [ty, tm] = t.fecha.split('-');
+    if (parseInt(ty) !== y) return;
+    const m = parseInt(tm) - 1;
+    if (t.tipo === 'ingreso') ingresos[m] += t.monto;
+    else gastos[m] += t.monto;
+  });
+  const labels = meses.slice(0, now.getMonth()+1);
+  if (window._chartFin) window._chartFin.destroy();
+  window._chartFin = new Chart(ctx, {
+    type:'bar', data:{
+      labels,
+      datasets:[
+        { label:'Ingresos', data:ingresos.slice(0, now.getMonth()+1), backgroundColor:'#C9A882', borderRadius:6 },
+        { label:'Gastos', data:gastos.slice(0, now.getMonth()+1), backgroundColor:'#EFE5D8', borderRadius:6 }
+      ]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false }, ticks:{ color:'#7D6B62', font:{ size:12 } } }, y:{ grid:{ color:'rgba(201,168,130,0.1)' }, ticks:{ color:'#7D6B62', font:{ size:11 }, callback: v => '$'+Math.round(v/1000)+'k' } } } }
+  });
+}
+
+// ============================================================
+// CLIENTES
+// ============================================================
+const tagMap = { 'VIP':'tag-vip', 'Recurrente':'tag-recurrente', 'Nueva':'tag-new', 'Referido':'tag-referido' };
+function iniciales(nombre) { return (nombre||'').split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase(); }
+
+let clienteViendoPerfil = null;
+
+function renderClientes(data) {
+  if (!data) data = load('clientes');
+  const q = document.getElementById('searchCliente')?.value.toLowerCase() || '';
+  const t = document.getElementById('filterTipo')?.value || '';
+  if (q || t) data = data.filter(c => c.nombre.toLowerCase().includes(q) && (!t || c.tipo === t));
+  const tbody = document.getElementById('clientes-tbody');
+  if (!tbody) return;
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">👤</div>Sin clientes registradas</div></td></tr>'; return; }
+  const citas = load('citas');
+  tbody.innerHTML = data.map(c => {
+    const clienteCitas = citas.filter(ci => ci.cliente === c.nombre);
+    const total = clienteCitas.reduce((a,ci) => a + (ci.precio||0), 0);
+    const ultimaCita = clienteCitas.sort((a,b) => b.fecha?.localeCompare(a.fecha)).find(ci => ci.fecha);
+    const cumpleStr = c.cumple ? new Date(c.cumple+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'}) : '—';
+    const ultimaStr = ultimaCita ? new Date(ultimaCita.fecha+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    return `<tr>
+      <td><div class="client-row" style="cursor:pointer" onclick="verPerfil('${c.id}')"><div class="client-avatar">${iniciales(c.nombre)}</div><span style="font-weight:500">${c.nombre}</span></div></td>
+      <td style="color:var(--rv-muted)">${c.tel||'—'}</td>
+      <td style="color:var(--rv-muted)">${ultimaStr}</td>
+      <td style="text-align:center">${clienteCitas.length}</td>
+      <td>$${total.toLocaleString('es-MX')}</td>
+      <td><span class="tag ${tagMap[c.tipo]||'tag-new'}">${c.tipo}</span></td>
+      <td style="color:var(--rv-muted)">${cumpleStr}</td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          <button class="btn-icon" onclick="verPerfil('${c.id}')" title="Ver perfil">👁</button>
+          <button class="btn-icon" onclick="editarCliente('${c.id}')" title="Editar">✏️</button>
+          <button class="btn-icon" onclick="eliminarCliente('${c.id}')" title="Eliminar" style="color:var(--rv-danger)">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterClientes() { renderClientes(); }
+
+function guardarCliente() {
+  const nombre = document.getElementById('c-nombre').value.trim();
+  if (!nombre) { toast('⚠ Ingresa el nombre de la cliente'); return; }
+  const clientes = load('clientes');
+  const editId = document.getElementById('c-edit-id').value;
+  const obj = {
+    id: editId || uid(),
+    nombre,
+    tel: document.getElementById('c-tel').value,
+    email: document.getElementById('c-email').value,
+    cumple: document.getElementById('c-cumple').value,
+    tipo: document.getElementById('c-tipo').value,
+    servicio: document.getElementById('c-servicio').value,
+    notas: document.getElementById('c-notas').value,
+    creado: editId ? (clientes.find(c=>c.id===editId)?.creado || Date.now()) : Date.now()
+  };
+  if (editId) {
+    const idx = clientes.findIndex(c => c.id === editId);
+    if (idx >= 0) clientes[idx] = obj;
+  } else {
+    clientes.unshift(obj);
+  }
+  save('clientes', clientes);
+  renderClientes();
+  closeModal('modal-cliente');
+  toast(editId ? '✓ Cliente actualizada' : '✓ Cliente agregada');
+  renderDashboard();
+}
+
+function editarCliente(id) {
+  const c = load('clientes').find(c => c.id === id);
+  if (!c) return;
+  document.getElementById('modal-cliente-title').textContent = 'Editar Cliente';
+  document.getElementById('c-edit-id').value = id;
+  document.getElementById('c-nombre').value = c.nombre;
+  document.getElementById('c-tel').value = c.tel || '';
+  document.getElementById('c-email').value = c.email || '';
+  document.getElementById('c-cumple').value = c.cumple || '';
+  document.getElementById('c-tipo').value = c.tipo;
+  document.getElementById('c-servicio').value = c.servicio || 'Maquillaje social';
+  document.getElementById('c-notas').value = c.notas || '';
+  closeModal('modal-perfil');
+  document.getElementById('modal-cliente').classList.add('open');
+}
+
+function editarClienteDesde() {
+  if (clienteViendoPerfil) editarCliente(clienteViendoPerfil);
+}
+
+function eliminarCliente(id) {
+  if (!confirm('¿Eliminar esta cliente? Esta acción no se puede deshacer.')) return;
+  save('clientes', load('clientes').filter(c => c.id !== id));
+  renderClientes();
+  renderDashboard();
+  toast('🗑 Cliente eliminada');
+}
+
+function verPerfil(id) {
+  const c = load('clientes').find(c => c.id === id);
+  if (!c) return;
+  clienteViendoPerfil = id;
+  const citas = load('citas').filter(ci => ci.cliente === c.nombre).sort((a,b) => b.fecha?.localeCompare(a.fecha));
+  const total = citas.reduce((a,ci) => a + (ci.precio||0), 0);
+  const ini = iniciales(c.nombre);
+  document.getElementById('perfil-avatar').textContent = ini;
+  document.getElementById('perfil-nombre').textContent = c.nombre;
+  const cumpleStr = c.cumple ? new Date(c.cumple+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'long'}) : '';
+  document.getElementById('perfil-meta').innerHTML = `<span class="tag ${tagMap[c.tipo]||'tag-new'}">${c.tipo}</span> &nbsp;${c.tel||''} ${cumpleStr ? '· 🎂 '+cumpleStr : ''}`;
+  document.getElementById('perfil-stats').innerHTML = `
+    <div class="profile-stat"><div class="profile-stat-val">${citas.length}</div><div class="profile-stat-label">Servicios</div></div>
+    <div class="profile-stat"><div class="profile-stat-val">$${total.toLocaleString('es-MX')}</div><div class="profile-stat-label">Gasto total</div></div>
+    <div class="profile-stat"><div class="profile-stat-val">${citas.length ? '$'+(Math.round(total/citas.length)).toLocaleString('es-MX') : '$0'}</div><div class="profile-stat-label">Ticket promedio</div></div>
+  `;
+  // Acciones
+  const wa = c.tel ? `<a href="https://wa.me/${c.tel.replace(/[^0-9]/g,'')}" class="wa-btn" target="_blank" style="font-size:12px;padding:6px 12px;">💬 WhatsApp</a>` : '';
+  document.getElementById('perfil-actions').innerHTML = wa;
+  // Historial
+  if (!citas.length) {
+    document.getElementById('perfil-historial').innerHTML = '<div class="empty-state"><div class="empty-icon">💄</div>Sin servicios registrados aún</div>';
+  } else {
+    document.getElementById('perfil-historial').innerHTML = citas.map(ci => {
+      const fechaStr = ci.fecha ? new Date(ci.fecha+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) : '';
+      const badgeClass = ci.estado==='Confirmada'?'badge-confirmed':ci.estado==='Cancelada'?'badge-cancelled':'badge-pending';
+      return `<div class="service-history-item">
+        <div class="service-dot"></div>
+        <div class="service-detail">
+          <div class="service-name">${ci.servicio}</div>
+          <div class="service-date">${fechaStr} · ${ci.hora} · ${ci.ubicacion} &nbsp;<span class="tag ${badgeClass}" style="font-size:10px">${ci.estado}</span></div>
+          ${ci.notas ? `<div class="service-date" style="margin-top:2px">📝 ${ci.notas}</div>` : ''}
+        </div>
+        <div class="service-price">$${(ci.precio||0).toLocaleString('es-MX')}</div>
+        <button class="btn-icon" onclick="eliminarCita('${ci.id}');verPerfil('${id}')" title="Eliminar servicio" style="color:var(--rv-danger);font-size:12px">🗑</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('modal-perfil').classList.add('open');
+}
+
+// ============================================================
+// AGENDA / CITAS
+// ============================================================
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selectedDate = null;
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderAgenda();
+}
+
+function renderAgenda() {
+  const citas = load('citas');
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-title').textContent = meses[calMonth] + ' ' + calYear;
+
+  const labels = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  document.getElementById('cal-labels').innerHTML = labels.map(l => `<div class="cal-day-label">${l}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const today = new Date(); const todayStr = today.toISOString().split('T')[0];
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) {
+    const d = new Date(calYear, calMonth, -(firstDay-1)+i);
+    html += `<button class="cal-day other-month">${d.getDate()}</button>`;
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = ds === todayStr;
+    const hasCita = citas.some(c => c.fecha === ds);
+    const isSel = ds === selectedDate;
+    html += `<button class="cal-day ${isToday?'today':''} ${hasCita?'has-cita':''} ${isSel?'selected':''}" onclick="selectDay('${ds}')" style="${isSel&&!isToday?'background:var(--rv-rose);color:white;':''}">${d}${hasCita?'<div class="cal-dot"></div>':''}</button>`;
+  }
+  document.getElementById('cal-days').innerHTML = html;
+
+  if (selectedDate) {
+    const dayCitas = citas.filter(c => c.fecha === selectedDate).sort((a,b) => a.hora?.localeCompare(b.hora));
+    document.getElementById('agenda-selected-title').textContent = 'Citas del ' + new Date(selectedDate+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'});
+    renderCitasLista(dayCitas);
+  } else {
+    const upcoming = citas.filter(c => c.fecha >= todayStr).sort((a,b) => a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora)).slice(0,6);
+    document.getElementById('agenda-selected-title').textContent = 'Próximas citas';
+    renderCitasLista(upcoming);
+  }
+}
+
+function selectDay(ds) {
+  selectedDate = selectedDate === ds ? null : ds;
+  renderAgenda();
+}
+
+function renderCitasLista(citas) {
+  const div = document.getElementById('agenda-citas-list');
+  if (!citas.length) { div.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div>Sin citas</div>'; return; }
+  div.innerHTML = citas.map(c => {
+    const badgeClass = c.estado==='Confirmada'?'badge-confirmed':c.estado==='Cancelada'?'badge-cancelled':'badge-pending';
+    return `<div class="cita-item">
+      <div class="cita-hora" style="font-size:13px;">${c.fecha ? new Date(c.fecha+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'}) : ''}<small>${c.hora}</small></div>
+      <div class="cita-info">
+        <div class="cita-nombre">${c.cliente}</div>
+        <div class="cita-servicio">${c.servicio}</div>
+      </div>
+      <span class="cita-badge ${badgeClass}" style="font-size:10px">${c.estado}</span>
+      <div style="display:flex;gap:2px;margin-left:4px;">
+        <button class="btn-icon" onclick="editarCita('${c.id}')" title="Editar">✏️</button>
+        <button class="btn-icon" onclick="eliminarCita('${c.id}')" title="Eliminar" style="color:var(--rv-danger)">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function guardarCita() {
+  const cliente = document.getElementById('cita-cliente').value.trim();
+  if (!cliente) { toast('⚠ Ingresa el nombre de la cliente'); return; }
+  const citas = load('citas');
+  const editId = document.getElementById('cita-edit-id').value;
+  const obj = {
+    id: editId || uid(),
+    cliente,
+    fecha: document.getElementById('cita-fecha').value,
+    hora: document.getElementById('cita-hora').value,
+    servicio: document.getElementById('cita-servicio').value,
+    ubicacion: document.getElementById('cita-ubicacion').value,
+    precio: parseFloat(document.getElementById('cita-precio').value) || 0,
+    estado: document.getElementById('cita-estado').value,
+    notas: document.getElementById('cita-notas').value,
+  };
+  if (editId) {
+    const idx = citas.findIndex(c => c.id === editId);
+    if (idx >= 0) citas[idx] = obj;
+  } else {
+    citas.unshift(obj);
+  }
+  save('citas', citas);
+  closeModal('modal-cita');
+  toast(editId ? '✓ Cita actualizada' : '✓ Cita agregada');
+  renderAgenda();
+  renderDashboard();
+}
+
+function editarCita(id) {
+  const c = load('citas').find(c => c.id === id);
+  if (!c) return;
+  document.getElementById('modal-cita-title').textContent = 'Editar Cita';
+  document.getElementById('cita-edit-id').value = id;
+  document.getElementById('cita-cliente').value = c.cliente;
+  document.getElementById('cita-fecha').value = c.fecha;
+  document.getElementById('cita-hora').value = c.hora;
+  document.getElementById('cita-servicio').value = c.servicio;
+  document.getElementById('cita-ubicacion').value = c.ubicacion;
+  document.getElementById('cita-precio').value = c.precio || '';
+  document.getElementById('cita-estado').value = c.estado;
+  document.getElementById('cita-notas').value = c.notas || '';
+  document.getElementById('modal-cita').classList.add('open');
+}
+
+function eliminarCita(id) {
+  if (!confirm('¿Eliminar esta cita?')) return;
+  save('citas', load('citas').filter(c => c.id !== id));
+  renderAgenda();
+  renderDashboard();
+  toast('🗑 Cita eliminada');
+}
+
+// ============================================================
+// FINANZAS
+// ============================================================
+function renderTx() {
+  let txs = load('txs');
+  const q = (document.getElementById('fin-search')?.value || '').toLowerCase();
+  const today = new Date(); const todayStr = today.toISOString().split('T')[0];
+  const mes = todayStr.slice(0,7);
+  // Start of week (Monday)
+  const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay() + 1);
+  const weekStartStr = weekStart.toISOString().split('T')[0];
+
+  let filtered = txs;
+  if (finFiltro === 'mes') filtered = txs.filter(t => t.fecha?.startsWith(mes));
+  else if (finFiltro === 'semana') filtered = txs.filter(t => t.fecha >= weekStartStr && t.fecha <= todayStr);
+  else if (finFiltro === 'ingreso') filtered = txs.filter(t => t.tipo === 'ingreso');
+  else if (finFiltro === 'gasto') filtered = txs.filter(t => t.tipo === 'gasto');
+  if (q) filtered = filtered.filter(t => (t.concepto||'').toLowerCase().includes(q) || (t.pago||'').toLowerCase().includes(q));
+
+  // Metrics always from current month
+  const ingresosMes = txs.filter(t=>t.tipo==='ingreso'&&t.fecha?.startsWith(mes)).reduce((a,t)=>a+t.monto,0);
+  const gastosMes = txs.filter(t=>t.tipo==='gasto'&&t.fecha?.startsWith(mes)).reduce((a,t)=>a+t.monto,0);
+  const neta = ingresosMes - gastosMes;
+  const margen = ingresosMes ? Math.round(neta/ingresosMes*100) : 0;
+  document.getElementById('fin-ingresos').textContent = '$'+ingresosMes.toLocaleString('es-MX');
+  document.getElementById('fin-gastos').textContent = '$'+gastosMes.toLocaleString('es-MX');
+  document.getElementById('fin-neta').textContent = '$'+neta.toLocaleString('es-MX');
+  document.getElementById('fin-margen').textContent = 'Margen '+margen+'%';
+  document.getElementById('fin-total-mov').textContent = txs.length;
+
+  const lista = document.getElementById('tx-lista');
+  if (!filtered.length) {
+    lista.innerHTML = '<div class="empty-state"><div class="empty-icon">💰</div>Sin movimientos en este filtro</div>';
+    return;
+  }
+  lista.innerHTML = filtered.slice(0,30).map(t => `
+    <div class="tx-item">
+      <div class="tx-icon ${t.tipo}">${t.tipo==='ingreso'?'💰':'🧾'}</div>
+      <div class="tx-info">
+        <div class="tx-concepto">${t.concepto}</div>
+        <div class="tx-fecha">${t.fecha||''} · ${t.pago||''}</div>
+      </div>
+      <div class="tx-monto ${t.tipo}">${t.tipo==='ingreso'?'+':'-'}$${t.monto.toLocaleString('es-MX')}</div>
+      <button class="btn-icon" onclick="eliminarTx('${t.id}')" title="Eliminar" style="color:var(--rv-danger);margin-left:4px">🗑</button>
+    </div>
+  `).join('');
+  document.getElementById('tx-fecha').value = todayStr;
+}
+
+function registrarTx() {
+  const monto = parseFloat(document.getElementById('tx-monto').value);
+  const concepto = document.getElementById('tx-concepto').value.trim();
+  if (!concepto || !monto) { toast('⚠ Completa concepto y monto'); return; }
+  const tipo = document.getElementById('tx-tipo').value.startsWith('Ingreso') ? 'ingreso' : 'gasto';
+  const txs = load('txs');
+  txs.unshift({ id:uid(), tipo, concepto, monto, fecha:document.getElementById('tx-fecha').value, pago:document.getElementById('tx-pago').value });
+  save('txs', txs);
+  document.getElementById('tx-monto').value = '';
+  document.getElementById('tx-concepto').value = '';
+  renderTx();
+  renderDashboard();
+  toast('✓ Movimiento registrado');
+}
+
+function eliminarTx(id) {
+  if (!confirm('¿Eliminar este movimiento?')) return;
+  save('txs', load('txs').filter(t => t.id !== id));
+  renderTx();
+  renderDashboard();
+  toast('🗑 Movimiento eliminado');
+}
+
+// ============================================================
+// INVENTARIO
+// ============================================================
+function renderInventario() {
+  const productos = load('productos');
+  const low = productos.filter(p => p.stock <= p.min).length;
+  document.getElementById('badge-inv').textContent = low;
+  document.getElementById('badge-inv').style.display = low ? '' : 'none';
+
+  document.getElementById('inv-grid').innerHTML = productos.map(p => {
+    const pct = Math.min(100, Math.round(p.stock / (p.min*3) * 100));
+    const cls = p.stock===0?'stock-critical':p.stock<=p.min?'stock-low':'stock-ok';
+    const alerta = p.stock===0 ? `<div class="inv-alert critical">⚠ Sin stock</div>` :
+      p.stock<=p.min ? `<div class="inv-alert low">⚠ Stock bajo</div>` : '';
+    const iconMap = { 'Base / Primer':'🎨','Labiales':'💄','Brochas / Esponjas':'🖌️','Sombras':'🎭','Rubor / Contorno':'🌸','Fijadores':'💦','Pestañas':'👁️','Desinfectantes':'🧴','Otro':'📦' };
+    const icon = p.icon || iconMap[p.cat] || '📦';
+    return `<div class="inv-card">
+      <div class="inv-actions">
+        <button class="btn-icon" onclick="editarProducto('${p.id}')" title="Editar">✏️</button>
+        <button class="btn-icon" onclick="eliminarProducto('${p.id}')" title="Eliminar" style="color:var(--rv-danger)">🗑</button>
+      </div>
+      <div class="inv-icon">${icon}</div>
+      <div class="inv-name">${p.nombre}</div>
+      <div style="font-size:11px;color:var(--rv-muted);margin-bottom:6px">${p.cat}</div>
+      <div><span class="inv-stock">${p.stock}</span><span class="inv-unit">${p.uni}</span></div>
+      <div class="stock-bar-wrap"><div class="stock-bar ${cls}" style="width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--rv-muted);margin-top:6px">
+        <span>Mínimo: ${p.min}</span>
+        <button class="btn-copy" style="font-size:11px;padding:3px 8px" onclick="ajustarStock('${p.id}')">+Stock</button>
+      </div>
+      ${alerta}
+    </div>`;
+  }).join('');
+}
+
+function ajustarStock(id) {
+  const productos = load('productos');
+  const p = productos.find(p => p.id === id);
+  if (!p) return;
+  const cant = parseInt(prompt(`Agregar unidades a "${p.nombre}" (stock actual: ${p.stock}):`));
+  if (!isNaN(cant) && cant > 0) {
+    p.stock += cant;
+    save('productos', productos);
+    renderInventario();
+    toast(`✓ Stock actualizado: ${p.nombre} → ${p.stock}`);
+  }
+}
+
+function editarProducto(id) {
+  const p = load('productos').find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('modal-prod-title').textContent = 'Editar producto';
+  document.getElementById('p-edit-id').value = id;
+  document.getElementById('p-nombre').value = p.nombre;
+  document.getElementById('p-cat').value = p.cat;
+  document.getElementById('p-uni').value = p.uni;
+  document.getElementById('p-stock').value = p.stock;
+  document.getElementById('p-min').value = p.min;
+  document.getElementById('modal-producto').classList.add('open');
+}
+
+function guardarProducto() {
+  const nombre = document.getElementById('p-nombre').value.trim();
+  if (!nombre) { toast('⚠ Ingresa el nombre del producto'); return; }
+  const productos = load('productos');
+  const editId = document.getElementById('p-edit-id').value;
+  const iconMap = { 'Base / Primer':'🎨','Labiales':'💄','Brochas / Esponjas':'🖌️','Sombras':'🎭','Rubor / Contorno':'🌸','Fijadores':'💦','Pestañas':'👁️','Desinfectantes':'🧴','Otro':'📦' };
+  const cat = document.getElementById('p-cat').value;
+  const obj = {
+    id: editId || uid(),
+    nombre, cat,
+    stock: parseInt(document.getElementById('p-stock').value)||0,
+    min: parseInt(document.getElementById('p-min').value)||3,
+    uni: document.getElementById('p-uni').value,
+    icon: iconMap[cat]||'📦'
+  };
+  if (editId) {
+    const idx = productos.findIndex(p => p.id === editId);
+    if (idx >= 0) productos[idx] = obj;
+  } else {
+    productos.unshift(obj);
+  }
+  save('productos', productos);
+  renderInventario();
+  closeModal('modal-producto');
+  toast(editId ? '✓ Producto actualizado' : '✓ Producto agregado');
+}
+
+function eliminarProducto(id) {
+  if (!confirm('¿Eliminar este producto?')) return;
+  save('productos', load('productos').filter(p => p.id !== id));
+  renderInventario();
+  toast('🗑 Producto eliminado');
+}
+
+// ============================================================
+// PROMOCIONES
+// ============================================================
+function renderPromos() {
+  const promos = load('promos');
+  const div = document.getElementById('promos-list');
+  if (!promos.length) { div.innerHTML = '<div class="empty-state"><div class="empty-icon">🎁</div>Sin promociones. Crea la primera.</div>'; return; }
+  const statusCls = { Activa:'status-active', Borrador:'status-draft', Finalizada:'status-ended' };
+  div.innerHTML = promos.map(p => `
+    <div class="promo-card">
+      <div class="promo-header">
+        <div>
+          <div class="promo-title">${p.nombre}</div>
+          <div class="promo-meta">
+            <span>📅 ${p.inicio} – ${p.fin}</span>
+            <span>🎯 ${p.servicios}</span>
+            <span>💸 ${p.valor} (${p.tipo})</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="promo-status ${statusCls[p.estado]||'status-draft'}">${p.estado}</span>
+          <button class="btn-icon" onclick="editarPromo('${p.id}')">✏️</button>
+          <button class="btn-icon" onclick="eliminarPromo('${p.id}')" style="color:var(--rv-danger)">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function guardarPromo() {
+  const nombre = document.getElementById('promo-nombre').value.trim();
+  if (!nombre) { toast('⚠ Ingresa el nombre de la campaña'); return; }
+  const promos = load('promos');
+  const editId = document.getElementById('promo-edit-id').value;
+  const obj = {
+    id: editId || uid(),
+    nombre,
+    inicio: document.getElementById('promo-inicio').value,
+    fin: document.getElementById('promo-fin').value,
+    tipo: document.getElementById('promo-tipo').value,
+    valor: document.getElementById('promo-valor').value,
+    servicios: document.getElementById('promo-servicios').value,
+    estado: document.getElementById('promo-estado').value,
+  };
+  if (editId) {
+    const idx = promos.findIndex(p => p.id === editId);
+    if (idx >= 0) promos[idx] = obj;
+  } else {
+    promos.unshift(obj);
+  }
+  save('promos', promos);
+  renderPromos();
+  closeModal('modal-promo');
+  toast(editId ? '✓ Promoción actualizada' : '✓ Promoción creada');
+}
+
+function editarPromo(id) {
+  const p = load('promos').find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('modal-promo-title').textContent = 'Editar Promoción';
+  document.getElementById('promo-edit-id').value = id;
+  document.getElementById('promo-nombre').value = p.nombre;
+  document.getElementById('promo-inicio').value = p.inicio;
+  document.getElementById('promo-fin').value = p.fin;
+  document.getElementById('promo-tipo').value = p.tipo;
+  document.getElementById('promo-valor').value = p.valor;
+  document.getElementById('promo-servicios').value = p.servicios;
+  document.getElementById('promo-estado').value = p.estado;
+  document.getElementById('modal-promo').classList.add('open');
+}
+
+function eliminarPromo(id) {
+  if (!confirm('¿Eliminar esta promoción?')) return;
+  save('promos', load('promos').filter(p => p.id !== id));
+  renderPromos();
+  toast('🗑 Promoción eliminada');
+}
+
+// ============================================================
+// MENSAJES
+// ============================================================
+function getMensajes() {
+  let m = load('mensajes');
+  if (!m.length) {
+    // fallback si se borra el storage
+    m = [
+      { id:uid(), tipo:'Confirmación de cita', texto:'¡Hola [Nombre]! 💄✨ Te confirmo tu cita el [fecha] a las [hora] para [servicio]. ¡Te espero! 🌸 — Rocío' },
+    ];
+    save('mensajes', m);
+  }
+  return m;
+}
+
+function renderMensajes() {
+  const q = (document.getElementById('msg-search')?.value || '').toLowerCase();
+  let mensajes = getMensajes();
+  if (q) mensajes = mensajes.filter(m => m.tipo.toLowerCase().includes(q) || m.texto.toLowerCase().includes(q));
+  if (!mensajes.length) {
+    document.getElementById('msg-list').innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div>' + (q ? 'Sin resultados para "'+q+'"' : 'Sin plantillas') + '</div>';
+    return;
+  }
+  document.getElementById('msg-list').innerHTML = mensajes.map((m,i) => `
+    <div class="msg-template">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+        <div class="msg-type">${m.tipo}</div>
+        <div class="msg-template-actions">
+          <button class="btn-icon" onclick="editarMensaje('${m.id}')" title="Editar" style="font-size:12px">✏️</button>
+          <button class="btn-icon" onclick="eliminarMensaje('${m.id}')" title="Eliminar" style="font-size:12px;color:var(--rv-danger)">🗑</button>
+        </div>
+      </div>
+      <div class="msg-text" id="msg-txt-${m.id}">${m.texto}</div>
+      <div class="msg-actions">
+        <button class="btn-copy" onclick="copyMsgById('${m.id}',this)">Copiar</button>
+        <a href="https://wa.me/?text=${encodeURIComponent(m.texto)}" target="_blank" class="wa-btn" style="font-size:12px;padding:5px 12px;">📱 WhatsApp</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterMensajes() { renderMensajes(); }
+
+function openModal(type) {
+  // intercept mensaje to handle the form properly
+  if (type === 'mensaje') {
+    document.getElementById('modal-msg-title').textContent = 'Nueva plantilla de mensaje';
+    document.getElementById('msg-edit-id').value = '';
+    document.getElementById('msg-tipo-nuevo').value = '';
+    document.getElementById('msg-texto-nuevo').value = '';
+    document.getElementById('modal-mensaje').classList.add('open');
+    return;
+  }
+  _openModal(type);
+}
+
+function guardarMensaje() {
+  const tipo = document.getElementById('msg-tipo-nuevo').value.trim();
+  const texto = document.getElementById('msg-texto-nuevo').value.trim();
+  if (!tipo || !texto) { toast('⚠ Completa tipo y texto'); return; }
+  const mensajes = getMensajes();
+  const editId = document.getElementById('msg-edit-id').value;
+  const obj = { id: editId || uid(), tipo, texto };
+  if (editId) {
+    const idx = mensajes.findIndex(m => m.id === editId);
+    if (idx >= 0) mensajes[idx] = obj;
+  } else {
+    mensajes.unshift(obj);
+  }
+  save('mensajes', mensajes);
+  renderMensajes();
+  closeModal('modal-mensaje');
+  toast(editId ? '✓ Plantilla actualizada' : '✓ Plantilla guardada');
+}
+
+function editarMensaje(id) {
+  const m = getMensajes().find(m => m.id === id);
+  if (!m) return;
+  document.getElementById('modal-msg-title').textContent = 'Editar plantilla';
+  document.getElementById('msg-edit-id').value = id;
+  document.getElementById('msg-tipo-nuevo').value = m.tipo;
+  document.getElementById('msg-texto-nuevo').value = m.texto;
+  document.getElementById('modal-mensaje').classList.add('open');
+}
+
+function eliminarMensaje(id) {
+  if (!confirm('¿Eliminar esta plantilla?')) return;
+  save('mensajes', getMensajes().filter(m => m.id !== id));
+  renderMensajes();
+  toast('🗑 Plantilla eliminada');
+}
+
+function copyMsgById(id, btn) {
+  const el = document.getElementById('msg-txt-'+id);
+  if (!el) return;
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copiado'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '✓ Copiado'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyMsg(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copiado'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '✓ Copiado'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ============================================================
+// INVITAR CLIENTE
+// ============================================================
+function updateInvMsg() {
+  const nombre = document.getElementById('inv-nombre')?.value || '';
+  const link = window.location.href.split('?')[0] + '?registro=1';
+  const msg = `¡Hola ${nombre || '[Nombre]'}! 🌸 Soy Rocío Vene Makeup. Me encantaría registrarte en mi sistema para darte seguimiento personalizado. Por favor completa tu registro aquí:\n\n${link}\n\n¡Solo tarda 2 minutos! ¡Gracias y nos vemos pronto! 💄`;
+  const prev = document.getElementById('inv-msg-preview');
+  if (prev) prev.textContent = msg;
+  const tel = document.getElementById('inv-tel')?.value.replace(/[^0-9]/g,'') || '';
+  const waBtn = document.getElementById('inv-wa-btn');
+  if (waBtn) waBtn.href = `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`;
+}
+
+document.getElementById('inv-nombre')?.addEventListener('input', updateInvMsg);
+document.getElementById('inv-tel')?.addEventListener('input', updateInvMsg);
+
+function copyInvLink() {
+  const link = window.location.href.split('?')[0] + '?registro=1';
+  navigator.clipboard.writeText(link).then(() => toast('✓ Enlace copiado')).catch(() => toast('✓ Enlace listo'));
+}
+
+function abrirRegistro() {
+  // Reset form
+  ['reg-nombre','reg-tel','reg-email','reg-notas'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const cumpleEl = document.getElementById('reg-cumple'); if(cumpleEl) cumpleEl.value='';
+  const fEl = document.getElementById('reg-fuente'); if(fEl) fEl.value='';
+  document.getElementById('reg-servicio-sel').value = '';
+  document.querySelectorAll('.reg-service-btn').forEach(b => b.classList.remove('selected'));
+  regNextStep(1);
+  document.getElementById('reg-page').classList.add('open');
+  // Update progress
+  ['rpd-1','rpd-2','rpd-3'].forEach(id => document.getElementById(id)?.classList.remove('done'));
+  document.getElementById('rpd-1')?.classList.add('done');
+  closeModal('modal-invitar');
+}
+
+function cerrarRegistro() {
+  document.getElementById('reg-page').classList.remove('open');
+}
+
+function regNextStep(n) {
+  document.querySelectorAll('.reg-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('reg-step-'+n)?.classList.add('active');
+  // Progress dots
+  ['rpd-1','rpd-2','rpd-3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('done', i < n);
+  });
+  // Validation
+  if (n === 2) {
+    const nombre = document.getElementById('reg-nombre').value.trim();
+    const tel = document.getElementById('reg-tel').value.trim();
+    if (!nombre || !tel) {
+      toast('⚠ Completa nombre y WhatsApp');
+      regNextStep(1);
+      return;
+    }
+  }
+  if (n === 3) {
+    if (!document.getElementById('reg-servicio-sel').value) {
+      toast('⚠ Selecciona el tipo de servicio');
+      regNextStep(2);
+      return;
+    }
+  }
+}
+
+function selectRegService(btn, servicio) {
+  document.querySelectorAll('.reg-service-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('reg-servicio-sel').value = servicio;
+}
+
+function enviarRegistro() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const tel = document.getElementById('reg-tel').value.trim();
+  if (!nombre || !tel) { toast('⚠ Faltan datos requeridos'); return; }
+
+  // Guardar cliente automáticamente en el sistema
+  const clientes = load('clientes');
+  const yaExiste = clientes.find(c => c.tel === tel || c.nombre.toLowerCase() === nombre.toLowerCase());
+  if (!yaExiste) {
+    clientes.unshift({
+      id: uid(),
+      nombre,
+      tel,
+      email: document.getElementById('reg-email').value,
+      cumple: document.getElementById('reg-cumple').value,
+      tipo: 'Nueva',
+      servicio: document.getElementById('reg-servicio-sel').value,
+      notas: `Fuente: ${document.getElementById('reg-fuente').value||'—'}. ${document.getElementById('reg-notas').value}`,
+      creado: Date.now(),
+      registradaOnline: true,
+    });
+    save('clientes', clientes);
+    toast('✨ ¡Cliente registrada en el sistema!');
+  }
+
+  // Mostrar éxito
+  document.getElementById('reg-nombre-final').textContent = nombre.split(' ')[0];
+  document.getElementById('reg-resumen').innerHTML = `
+    📛 ${nombre}<br>
+    📱 ${tel}<br>
+    💄 ${document.getElementById('reg-servicio-sel').value || '—'}<br>
+    📍 ${document.getElementById('reg-fuente').value || '—'}
+  `;
+  ['rpd-1','rpd-2','rpd-3'].forEach(id => document.getElementById(id)?.classList.add('done'));
+  document.querySelectorAll('.reg-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('reg-step-4').classList.add('active');
+  renderDashboard();
+}
+
+// ============================================================
+// REGISTROS ONLINE (Google Sheets)
+// ============================================================
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyAyQdmRDkMG3nXsn7w8GUW7Q-7BMz9SKu_WBXNeL-MoWw6idyZuIT0f4iqx10a6lsyXg/exec';
+const APROBADAS_KEY = 'rv_reg_aprobadas';
+
+function cargarRegistros() {
+  const statusDiv = document.getElementById('reg-status');
+  const pendDiv   = document.getElementById('registros-pendientes');
+  const btn       = document.getElementById('btn-reload-reg');
+
+  statusDiv.style.display = 'block';
+  statusDiv.innerHTML = '<div class="reg-status-loading">⏳ Conectando con Google Sheets…</div>';
+  pendDiv.innerHTML = '';
+  if (btn) btn.textContent = '…';
+
+  fetch(SHEETS_URL)
+    .then(r => r.json())
+    .then(data => {
+      if (btn) btn.textContent = '↻ Actualizar';
+      if (!Array.isArray(data) || data.length === 0) {
+        statusDiv.innerHTML = '<div class="reg-status-ok">✓ Sin registros pendientes por aprobar 🌸</div>';
+        document.getElementById('badge-registros').style.display = 'none';
+        return;
+      }
+
+      const aprobadas = JSON.parse(localStorage.getItem(APROBADAS_KEY) || '[]');
+      const pendientes = data.filter(r => r['Estado'] === 'Pendiente' && !aprobadas.includes(r['ID']));
+      const yaAprobadas = data.filter(r => aprobadas.includes(r['ID']));
+
+      // Badge en sidebar
+      const badge = document.getElementById('badge-registros');
+      if (pendientes.length > 0) {
+        badge.textContent = pendientes.length;
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      statusDiv.innerHTML = pendientes.length > 0
+        ? `<div class="reg-status-ok">📋 ${pendientes.length} registro(s) nuevo(s) esperando aprobación</div>`
+        : '<div class="reg-status-ok">✓ Sin pendientes — todo al día 🌸</div>';
+
+      // Renderizar pendientes
+      if (pendientes.length === 0) {
+        pendDiv.innerHTML = '<div class="empty-state"><div class="empty-icon">🌸</div>No hay registros pendientes</div>';
+      } else {
+        pendDiv.innerHTML = pendientes.map(r => renderRegCard(r, false)).join('');
+      }
+
+      // Renderizar aprobadas
+      const wrapAprob = document.getElementById('registros-aprobadas-wrap');
+      const divAprob  = document.getElementById('registros-aprobadas');
+      if (yaAprobadas.length > 0) {
+        wrapAprob.style.display = 'block';
+        divAprob.innerHTML = yaAprobadas.map(r => renderRegCard(r, true)).join('');
+      } else {
+        wrapAprob.style.display = 'none';
+      }
+    })
+    .catch(err => {
+      if (btn) btn.textContent = '↻ Actualizar';
+      statusDiv.innerHTML = `<div class="reg-status-err">⚠ No se pudo conectar con Google Sheets. Verifica tu conexión.<br><small style="opacity:0.7">${err.message}</small></div>`;
+    });
+}
+
+function renderRegCard(r, aprobada) {
+  const ini = (r['Nombre'] || '?').split(' ').map(w => w[0] || '').slice(0,2).join('').toUpperCase();
+  const servicio = r['Servicio'] || '—';
+  const fuente   = r['Fuente']   || '';
+  const fecha    = r['Fecha registro'] || '';
+  const fechaDeseada = r['Fecha deseada'] ? ` · 📅 ${r['Fecha deseada']}` : '';
+  const notas    = r['Notas']    ? `<br>📝 ${r['Notas']}` : '';
+  const id       = r['ID']       || '';
+
+  return `<div class="reg-card-item ${aprobada ? 'aprobada' : ''}" id="regcard-${id}">
+    <div class="reg-avatar">${ini}</div>
+    <div class="reg-info">
+      <div class="reg-nombre">
+        ${r['Nombre'] || '—'}
+        ${!aprobada ? '<span class="reg-tag-nueva">Nueva</span>' : ''}
+      </div>
+      <div class="reg-detalle">
+        <span>📱 ${r['WhatsApp'] || '—'}</span>
+        <span>💄 ${servicio}</span>
+        ${fuente ? `<span>📍 ${fuente}</span>` : ''}
+        ${fechaDeseada}
+        ${notas}
+      </div>
+      <div class="reg-fecha">Registrada el ${fecha}</div>
+    </div>
+    <div class="reg-actions">
+      ${!aprobada ? `
+        <a href="https://wa.me/${(r['WhatsApp']||'').replace(/[^0-9]/g,'')}" target="_blank" class="btn-icon" title="WhatsApp" style="font-size:18px">📱</a>
+        <button class="btn-aprobar" onclick="aprobarRegistro('${id}', ${JSON.stringify(r).replace(/"/g,'&quot;')})">✓ Aprobar</button>
+      ` : `<span style="font-size:12px;color:var(--rv-success);font-weight:500">✓ Aprobada</span>`}
+    </div>
+  </div>`;
+}
+
+function aprobarRegistro(id, r) {
+  // Marcar como aprobada localmente
+  const aprobadas = JSON.parse(localStorage.getItem(APROBADAS_KEY) || '[]');
+  if (!aprobadas.includes(id)) aprobadas.push(id);
+  localStorage.setItem(APROBADAS_KEY, JSON.stringify(aprobadas));
+
+  // Guardar en clientes
+  const clientes = load('clientes');
+  const yaExiste = clientes.find(c =>
+    c.tel === r['WhatsApp'] ||
+    (c.nombre || '').toLowerCase() === (r['Nombre'] || '').toLowerCase()
+  );
+  if (!yaExiste) {
+    clientes.unshift({
+      id: id || (Date.now().toString(36)),
+      nombre:   r['Nombre']       || '',
+      tel:      r['WhatsApp']     || '',
+      email:    r['Email']        || '',
+      cumple:   r['Cumpleaños']   || '',
+      tipo:     'Nueva',
+      servicio: r['Servicio']     || '',
+      notas:    `Fuente: ${r['Fuente'] || '—'}. ${r['Notas'] || ''}`.trim(),
+      creado:   Date.now(),
+      registradaOnline: true,
+    });
+    save('clientes', clientes);
+  }
+
+  // Feedback visual
+  const card = document.getElementById('regcard-' + id);
+  if (card) {
+    card.style.transition = 'all 0.3s';
+    card.style.background = 'rgba(123,158,126,0.08)';
+    card.style.borderColor = 'rgba(123,158,126,0.3)';
+    card.querySelector('.reg-actions').innerHTML = '<span style="font-size:13px;color:var(--rv-success);font-weight:500">✓ ¡Agregada a clientes!</span>';
+  }
+
+  toast('✓ ' + (r['Nombre'] || 'Clienta') + ' agregada a tu lista');
+  renderDashboard();
+
+  // Recargar después de 1.5s para reflejar cambios
+  setTimeout(() => cargarRegistros(), 1500);
+}
+
+// ============================================================
+// REPORTES
+// ============================================================
+function renderReportes() {
+  const citas = load('citas'); const clientes = load('clientes'); const productos = load('productos');
+  document.getElementById('rep-citas').textContent = citas.length;
+  document.getElementById('rep-clientes').textContent = clientes.length;
+  const ingresos = citas.filter(c=>c.precio>0);
+  const ticket = ingresos.length ? Math.round(ingresos.reduce((a,c)=>a+c.precio,0)/ingresos.length) : 0;
+  document.getElementById('rep-ticket').textContent = '$'+ticket.toLocaleString('es-MX');
+  const stockBajo = productos.filter(p=>p.stock<=p.min).length;
+  document.getElementById('rep-stockbajo').textContent = stockBajo;
+
+  // Alertas reportes
+  const alertas = [];
+  if (stockBajo) alertas.push({ tipo:'urgent', txt:`${stockBajo} producto(s) con stock bajo o agotado` });
+  const sinContacto = clientes.filter(c => {
+    const uc = load('citas').filter(ci=>ci.cliente===c.nombre).sort((a,b)=>b.fecha?.localeCompare(a.fecha));
+    if (!uc.length) return true;
+    const last = new Date(uc[0].fecha+'T12:00');
+    return (Date.now()-last.getTime()) > 60*24*60*60*1000;
+  });
+  if (sinContacto.length) alertas.push({ tipo:'warn', txt:`${sinContacto.length} cliente(s) sin contacto en +60 días` });
+  if (!alertas.length) alertas.push({ tipo:'ok', txt:'Sistema sin alertas activas 🌸' });
+  document.getElementById('rep-alertas').innerHTML = alertas.map(a=>
+    `<div class="alert-item alert-${a.tipo}"><div class="alert-dot ${a.tipo}"></div><span>${a.txt}</span></div>`
+  ).join('');
+
+  // Charts
+  const servicioCount = {};
+  citas.forEach(c => { servicioCount[c.servicio] = (servicioCount[c.servicio]||0)+1; });
+  const servLabels = Object.keys(servicioCount); const servData = Object.values(servicioCount);
+  const tipoCount = {};
+  clientes.forEach(c => { tipoCount[c.tipo] = (tipoCount[c.tipo]||0)+1; });
+
+  setTimeout(() => {
+    const cs = document.getElementById('chartServicios');
+    const cc = document.getElementById('chartClientes');
+    if (window._chartS) window._chartS.destroy();
+    if (window._chartC) window._chartC.destroy();
+    if (cs && servLabels.length) {
+      window._chartS = new Chart(cs, { type:'doughnut', data:{ labels:servLabels, datasets:[{ data:servData, backgroundColor:['#C9A882','#D4869A','#B8965A','#7B9E7E','#C4706A'], borderWidth:0 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#2A1F1A', font:{ size:11 }, padding:10 } } } } });
+    }
+    if (cc && Object.keys(tipoCount).length) {
+      window._chartC = new Chart(cc, { type:'doughnut', data:{ labels:Object.keys(tipoCount), datasets:[{ data:Object.values(tipoCount), backgroundColor:['#B8965A','#C9A882','#D4869A','#7B9E7E'], borderWidth:0 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#2A1F1A', font:{ size:11 }, padding:10 } } } } });
+    }
+  }, 100);
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportarCSV() {
+  const rows = [['Tipo','Concepto','Monto','Fecha','Pago']];
+  load('txs').forEach(t => rows.push([t.tipo, t.concepto, t.monto, t.fecha, t.pago]));
+  downloadCSV(rows, 'finanzas_rocio_vene.csv');
+}
+
+function exportarClientesCSV() {
+  const rows = [['Nombre','Teléfono','Email','Cumpleaños','Tipo','Notas']];
+  load('clientes').forEach(c => rows.push([c.nombre, c.tel, c.email, c.cumple, c.tipo, c.notas]));
+  downloadCSV(rows, 'clientes_rocio_vene.csv');
+}
+
+function exportarCitasCSV() {
+  const rows = [['Cliente','Fecha','Hora','Servicio','Ubicación','Precio','Estado']];
+  load('citas').forEach(c => rows.push([c.cliente, c.fecha, c.hora, c.servicio, c.ubicacion, c.precio, c.estado]));
+  downloadCSV(rows, 'citas_rocio_vene.csv');
+}
+
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r => r.map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], { type:'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  toast('✓ Archivo descargado');
+}
+
+// ============================================================
+// CALENDAR (agenda)
+// ============================================================
+function buildCalendarLabels() {
+  const labels = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  document.getElementById('cal-labels').innerHTML = labels.map(l => `<div class="cal-day-label">${l}</div>`).join('');
+}
+
+// ============================================================
+// DATE
+// ============================================================
+const now = new Date();
+document.getElementById('topbar-date').textContent = now.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long' });
+
+// ============================================================
+// INIT
+// ============================================================
+renderDashboard();
+renderMensajes();
+updateInvMsg();
+
+// set today's date on tx-fecha
+document.getElementById('tx-fecha').value = now.toISOString().split('T')[0];
+
+// Check URL param for auto-open registro
+if (new URLSearchParams(window.location.search).get('registro') === '1') {
+  setTimeout(() => abrirRegistro(), 300);
+}
+</script>
+</body>
+</html>

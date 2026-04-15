@@ -2341,31 +2341,61 @@ function renderRegCard(r, aprobada) {
 }
 
 function aprobarRegistro(id, r) {
+  const s = (v) => (v !== undefined && v !== null) ? String(v) : '';
+
   // Marcar como aprobada localmente
   const aprobadas = JSON.parse(localStorage.getItem(APROBADAS_KEY) || '[]');
   if (!aprobadas.includes(id)) aprobadas.push(id);
   localStorage.setItem(APROBADAS_KEY, JSON.stringify(aprobadas));
 
+  const _nombre = s(r['Nombre']);
+  const _tel    = s(r['WhatsApp']);
+
   // Guardar en clientes
   const clientes = load('clientes');
   const yaExiste = clientes.find(c =>
-    c.tel === r['WhatsApp'] ||
-    (c.nombre || '').toLowerCase() === (r['Nombre'] || '').toLowerCase()
+    c.tel === _tel ||
+    (c.nombre || '').toLowerCase() === _nombre.toLowerCase()
   );
   if (!yaExiste) {
     clientes.unshift({
-      id: id || (Date.now().toString(36)),
-      nombre:   r['Nombre']       || '',
-      tel:      r['WhatsApp']     || '',
-      email:    r['Email']        || '',
-      cumple:   r['Cumpleaños']   || '',
+      id:       id || Date.now().toString(36),
+      nombre:   _nombre,
+      tel:      _tel,
+      email:    s(r['Email']),
+      cumple:   s(r['Cumpleaños']),
       tipo:     'Nueva',
-      servicio: r['Servicio']     || '',
-      notas:    `Fuente: ${r['Fuente'] || '—'}. ${r['Notas'] || ''}`.trim(),
+      servicio: s(r['Servicio']),
+      notas:    `Fuente: ${s(r['Fuente']) || '—'}. ${s(r['Notas'])}`.trim(),
       creado:   Date.now(),
       registradaOnline: true,
     });
     save('clientes', clientes);
+  }
+
+  // Crear cita en agenda
+  const citas = load('citas');
+  const yaHayCita = citas.find(c => c.cliente === _nombre && c.estado !== 'Cancelada');
+  if (!yaHayCita) {
+    // Normalizar fecha ISO → YYYY-MM-DD
+    const _fechaRaw = s(r['Fecha deseada']);
+    const _fecha = _fechaRaw.length > 10 ? _fechaRaw.slice(0, 10) : _fechaRaw;
+    const _hora  = s(r['Hora deseada']) || '';
+    // Estado: Confirmada si tiene fecha Y hora, Pendiente si falta alguno
+    const _estado = (_fecha && _hora) ? 'Confirmada' : 'Pendiente';
+    citas.unshift({
+      id:        uid(),
+      cliente:   _nombre,
+      fecha:     _fecha,
+      hora:      _hora,
+      servicio:  s(r['Servicio']) || 'Por confirmar',
+      ubicacion: 'Studio Rocío Vene',
+      precio:    0,
+      estado:    _estado,
+      notas:     `Registro online. ${s(r['Notas'])}`.trim(),
+      waMensajeEnviado: false,
+    });
+    save('citas', citas);
   }
 
   // Feedback visual
@@ -2374,13 +2404,11 @@ function aprobarRegistro(id, r) {
     card.style.transition = 'all 0.3s';
     card.style.background = 'rgba(123,158,126,0.08)';
     card.style.borderColor = 'rgba(123,158,126,0.3)';
-    card.querySelector('.reg-actions').innerHTML = '<span style="font-size:13px;color:var(--rv-success);font-weight:500">✓ ¡Agregada a clientes!</span>';
+    card.querySelector('.reg-actions').innerHTML = '<span style="font-size:13px;color:var(--rv-success);font-weight:500">✓ ¡Agregada a clientes y agenda!</span>';
   }
 
-  toast('✓ ' + (r['Nombre'] || 'Clienta') + ' agregada a tu lista');
+  toast('✓ ' + (_nombre || 'Clienta') + ' agregada a clientes y agenda');
   renderDashboard();
-
-  // Recargar después de 1.5s para reflejar cambios
   setTimeout(() => cargarRegistros(), 1500);
 }
 

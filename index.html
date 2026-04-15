@@ -1088,6 +1088,54 @@
   </div>
 </div>
 
+<!-- Modal Registrar Pago desde Perfil -->
+<div class="modal-overlay" id="modal-pago-perfil">
+  <div class="modal">
+    <div class="modal-title">💰 Registrar pago</div>
+    <div class="form-group">
+      <label class="form-label">Tipo</label>
+      <select class="form-input" id="pp-tipo">
+        <option value="ingreso">Ingreso — Servicio</option>
+        <option value="gasto">Gasto — Otro</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Monto (MXN)</label>
+        <input type="number" class="form-input" id="pp-monto" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input type="date" class="form-input" id="pp-fecha">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Concepto</label>
+      <input type="text" class="form-input" id="pp-concepto" placeholder="Ej: Maquillaje novia Valentina">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Forma de pago</label>
+      <select class="form-input" id="pp-pago">
+        <option>Efectivo</option>
+        <option>Transferencia</option>
+        <option>Tarjeta</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Actualizar precio de la cita</label>
+      <select class="form-input" id="pp-actualizar-cita">
+        <option value="si">Sí — actualizar precio en la cita</option>
+        <option value="no">No — solo registrar en finanzas</option>
+      </select>
+    </div>
+    <input type="hidden" id="pp-cita-id">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-pago-perfil')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarPagoPerfil()">💰 Registrar pago</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1219,7 +1267,6 @@ function toast(msg, dur=2500) {
 // MODALS
 // ============================================================
 function _openModal(type) {
-  const m = document.getElementById('modal-' + type);
   if (!m) return;
   m.classList.add('open');
   const today = new Date().toISOString().split('T')[0];
@@ -1452,7 +1499,8 @@ function renderClientes(data) {
     const clienteCitas = citas.filter(ci => ci.cliente === c.nombre);
     const total = clienteCitas.reduce((a,ci) => a + (ci.precio||0), 0);
     const ultimaCita = clienteCitas.sort((a,b) => b.fecha?.localeCompare(a.fecha)).find(ci => ci.fecha);
-    const cumpleStr = c.cumple ? new Date(c.cumple+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'}) : '—';
+    const _cumpleN = c.cumple ? c.cumple.slice(0,10) : '';
+    const cumpleStr = _cumpleN ? new Date(_cumpleN+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'}) : '—';
     const ultimaStr = ultimaCita ? new Date(ultimaCita.fecha+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'}) : '—';
     return `<tr>
       <td><div class="client-row" style="cursor:pointer" onclick="verPerfil('${c.id}')"><div class="client-avatar">${iniciales(c.nombre)}</div><span style="font-weight:500">${c.nombre}</span></div></td>
@@ -1537,11 +1585,15 @@ function verPerfil(id) {
   if (!c) return;
   clienteViendoPerfil = id;
   const citas = load('citas').filter(ci => ci.cliente === c.nombre).sort((a,b) => b.fecha?.localeCompare(a.fecha));
-  const total = citas.reduce((a,ci) => a + (ci.precio||0), 0);
+  const txsAll = load('txs');
+  const totalCitas = citas.reduce((a,ci) => a + (ci.precio||0), 0);
+  const totalTxs = txsAll.filter(t => t.tipo==='ingreso' && t.concepto && t.concepto.toLowerCase().includes(c.nombre.toLowerCase().split(' ')[0])).reduce((a,t) => a+t.monto, 0);
+  const total = totalCitas || totalTxs;
   const ini = iniciales(c.nombre);
   document.getElementById('perfil-avatar').textContent = ini;
   document.getElementById('perfil-nombre').textContent = c.nombre;
-  const cumpleStr = c.cumple ? new Date(c.cumple+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'long'}) : '';
+  const _cumpleV = c.cumple ? c.cumple.slice(0,10) : '';
+  const cumpleStr = _cumpleV ? new Date(_cumpleV+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'long'}) : '';
   document.getElementById('perfil-meta').innerHTML = `<span class="tag ${tagMap[c.tipo]||'tag-new'}">${c.tipo}</span> &nbsp;${c.tel||''} ${cumpleStr ? '· 🎂 '+cumpleStr : ''}`;
   document.getElementById('perfil-stats').innerHTML = `
     <div class="profile-stat"><div class="profile-stat-val">${citas.length}</div><div class="profile-stat-label">Servicios</div></div>
@@ -1550,13 +1602,19 @@ function verPerfil(id) {
   `;
   // Acciones
   const wa = c.tel ? `<a href="https://wa.me/${c.tel.replace(/[^0-9]/g,'')}" class="wa-btn" target="_blank" style="font-size:12px;padding:6px 12px;">💬 WhatsApp</a>` : '';
-  document.getElementById('perfil-actions').innerHTML = wa;
+  const ultimaCita = citas[0];
+  document.getElementById('perfil-actions').innerHTML = wa + `
+    <button onclick="abrirPagoPerfil('${c.nombre}', '${ultimaCita ? ultimaCita.servicio.replace(/'/g,"\'") : ''}', '${ultimaCita ? ultimaCita.id : ''}')"
+      style="background:var(--rv-nude);color:white;border:none;padding:6px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+      💰 Registrar pago
+    </button>`;
   // Historial
   if (!citas.length) {
     document.getElementById('perfil-historial').innerHTML = '<div class="empty-state"><div class="empty-icon">💄</div>Sin servicios registrados aún</div>';
   } else {
     document.getElementById('perfil-historial').innerHTML = citas.map(ci => {
-      const fechaStr = ci.fecha ? new Date(ci.fecha+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) : '';
+      const _fh = ci.fecha ? ci.fecha.slice(0,10) : '';
+      const fechaStr = _fh ? new Date(_fh+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) : '';
       const badgeClass = ci.estado==='Confirmada'?'badge-confirmed':ci.estado==='Cancelada'?'badge-cancelled':'badge-pending';
       return `<div class="service-history-item">
         <div class="service-dot"></div>
@@ -2428,6 +2486,60 @@ updateInvMsg();
 
 // set today's date on tx-fecha
 document.getElementById('tx-fecha').value = now.toISOString().split('T')[0];
+
+// ============================================================
+// PAGO DESDE PERFIL
+// ============================================================
+function abrirPagoPerfil(nombreCliente, servicio, citaId) {
+  const today = now.toISOString().split('T')[0];
+  document.getElementById('pp-fecha').value = today;
+  document.getElementById('pp-monto').value = '';
+  document.getElementById('pp-tipo').value = 'ingreso';
+  document.getElementById('pp-pago').value = 'Efectivo';
+  document.getElementById('pp-cita-id').value = citaId || '';
+  // Pre-llenar concepto con nombre y servicio
+  const concepto = servicio
+    ? `${servicio} — ${nombreCliente}`
+    : `Servicio — ${nombreCliente}`;
+  document.getElementById('pp-concepto').value = concepto;
+  // Mostrar/ocultar opción de actualizar cita
+  document.getElementById('pp-actualizar-cita').parentElement.style.display = citaId ? '' : 'none';
+  closeModal('modal-perfil');
+  document.getElementById('modal-pago-perfil').classList.add('open');
+}
+
+function guardarPagoPerfil() {
+  const monto = parseFloat(document.getElementById('pp-monto').value);
+  const concepto = document.getElementById('pp-concepto').value.trim();
+  if (!concepto || !monto || monto <= 0) { toast('⚠ Ingresa concepto y monto'); return; }
+  const tipo = document.getElementById('pp-tipo').value;
+  const fecha = document.getElementById('pp-fecha').value;
+  const pago = document.getElementById('pp-pago').value;
+  const citaId = document.getElementById('pp-cita-id').value;
+  const actualizarCita = document.getElementById('pp-actualizar-cita').value === 'si';
+
+  // Guardar en finanzas
+  const txs = load('txs');
+  txs.unshift({ id: uid(), tipo, concepto, monto, fecha, pago });
+  save('txs', txs);
+
+  // Actualizar precio en la cita si aplica
+  if (citaId && actualizarCita) {
+    const citas = load('citas');
+    const idx = citas.findIndex(c => c.id === citaId);
+    if (idx >= 0) {
+      citas[idx].precio = monto;
+      citas[idx].estado = 'Confirmada';
+      save('citas', citas);
+    }
+  }
+
+  closeModal('modal-pago-perfil');
+  toast('✓ Pago registrado en Finanzas');
+  renderDashboard();
+  // Reabrir perfil si estábamos ahí
+  if (clienteViendoPerfil) setTimeout(() => verPerfil(clienteViendoPerfil), 300);
+}
 
 // Check URL param for auto-open registro
 if (new URLSearchParams(window.location.search).get('registro') === '1') {

@@ -2248,23 +2248,26 @@ function cargarRegistros() {
 }
 
 function renderRegCard(r, aprobada) {
-  const ini = (r['Nombre'] || '?').split(' ').map(w => w[0] || '').slice(0,2).join('').toUpperCase();
-  const servicio = r['Servicio'] || '—';
-  const fuente   = r['Fuente']   || '';
-  const fecha    = r['Fecha registro'] || '';
-  const fechaDeseada = r['Fecha deseada'] ? ` · 📅 ${r['Fecha deseada']}` : '';
-  const notas    = r['Notas']    ? `<br>📝 ${r['Notas']}` : '';
-  const id       = r['ID']       || '';
+  const s = (v) => (v !== undefined && v !== null) ? String(v) : '';
+  const nombre   = s(r['Nombre'])   || '—';
+  const whatsapp = s(r['WhatsApp']) || '';
+  const ini      = nombre.split(' ').map(w => w[0] || '').slice(0,2).join('').toUpperCase();
+  const servicio = s(r['Servicio']) || '—';
+  const fuente   = s(r['Fuente'])   || '';
+  const fecha    = s(r['Fecha registro']) || '';
+  const fechaDeseada = s(r['Fecha deseada']) ? ` · 📅 ${s(r['Fecha deseada'])}` : '';
+  const notas    = s(r['Notas']) ? `<br>📝 ${s(r['Notas'])}` : '';
+  const id       = s(r['ID']) || '';
 
   return `<div class="reg-card-item ${aprobada ? 'aprobada' : ''}" id="regcard-${id}">
     <div class="reg-avatar">${ini}</div>
     <div class="reg-info">
       <div class="reg-nombre">
-        ${r['Nombre'] || '—'}
+        ${nombre}
         ${!aprobada ? '<span class="reg-tag-nueva">Nueva</span>' : ''}
       </div>
       <div class="reg-detalle">
-        <span>📱 ${r['WhatsApp'] || '—'}</span>
+        <span>📱 ${whatsapp || '—'}</span>
         <span>💄 ${servicio}</span>
         ${fuente ? `<span>📍 ${fuente}</span>` : ''}
         ${fechaDeseada}
@@ -2274,7 +2277,7 @@ function renderRegCard(r, aprobada) {
     </div>
     <div class="reg-actions">
       ${!aprobada ? `
-        <a href="https://wa.me/${(r['WhatsApp']||'').replace(/[^0-9]/g,'')}" target="_blank" class="btn-icon" title="WhatsApp" style="font-size:18px">📱</a>
+        <a href="https://wa.me/${whatsapp.replace(/[^0-9]/g,'')}" target="_blank" class="btn-icon" title="WhatsApp" style="font-size:18px">📱</a>
         <button class="btn-aprobar" onclick="aprobarRegistro('${id}', ${JSON.stringify(r).replace(/"/g,'&quot;')})">✓ Aprobar</button>
       ` : `<span style="font-size:12px;color:var(--rv-success);font-weight:500">✓ Aprobada</span>`}
     </div>
@@ -2284,7 +2287,6 @@ function renderRegCard(r, aprobada) {
 function aprobarRegistro(id, r) {
   const s = (v) => (v !== undefined && v !== null) ? String(v) : '';
 
-  // Marcar como aprobada localmente
   const aprobadas = JSON.parse(localStorage.getItem(APROBADAS_KEY) || '[]');
   if (!aprobadas.includes(id)) aprobadas.push(id);
   localStorage.setItem(APROBADAS_KEY, JSON.stringify(aprobadas));
@@ -2314,21 +2316,16 @@ function aprobarRegistro(id, r) {
     save('clientes', clientes);
   }
 
-  // Crear cita pendiente si tiene fecha deseada, o dejarla sin fecha para que Rocío la agende
+  // Crear cita pendiente en agenda
   const citas = load('citas');
-  const yaHayCita = citas.find(c =>
-    c.cliente === _nombre &&
-    c.estado !== 'Cancelada'
-  );
+  const yaHayCita = citas.find(c => c.cliente === _nombre && c.estado !== 'Cancelada');
   if (!yaHayCita) {
-    const fechaDeseada = s(r['Fecha deseada']);
-    const horaDeseada  = s(r['Hora deseada']);
     citas.unshift({
       id:        uid(),
       cliente:   _nombre,
-      fecha:     fechaDeseada || '',
-      hora:      horaDeseada  || '',
-      servicio:  s(r['Servicio']) || 'Por confirmar',
+      fecha:     s(r['Fecha deseada']) || '',
+      hora:      s(r['Hora deseada'])  || '',
+      servicio:  s(r['Servicio'])      || 'Por confirmar',
       ubicacion: 'Studio Rocío Vene',
       precio:    0,
       estado:    'Pendiente',
@@ -2349,7 +2346,6 @@ function aprobarRegistro(id, r) {
 
   toast('✓ ' + (_nombre || 'Clienta') + ' agregada a clientes y agenda');
   renderDashboard();
-
   setTimeout(() => cargarRegistros(), 1500);
 }
 

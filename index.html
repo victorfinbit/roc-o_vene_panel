@@ -1267,6 +1267,7 @@ function toast(msg, dur=2500) {
 // MODALS
 // ============================================================
 function _openModal(type) {
+  const m = document.getElementById('modal-' + type);
   if (!m) return;
   m.classList.add('open');
   const today = new Date().toISOString().split('T')[0];
@@ -2524,17 +2525,21 @@ document.getElementById('tx-fecha').value = now.toISOString().split('T')[0];
 // PAGO DESDE PERFIL
 // ============================================================
 function abrirCitaPerfil(nombreCliente, clienteId) {
-  // Cerrar perfil y abrir modal de cita con nombre pre-llenado
   closeModal('modal-perfil');
-  // Usar _openModal para abrir el modal de cita
-  _openModal('cita');
-  // Pre-llenar el nombre del cliente
-  document.getElementById('cita-cliente').value = nombreCliente;
+  // Abrir modal de cita directamente
+  const m = document.getElementById('modal-cita');
+  if (!m) return;
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('cita-fecha').value = today;
   document.getElementById('cita-edit-id').value = '';
-  document.getElementById('modal-cita-title').textContent = 'Nueva Cita — ' + nombreCliente;
-  // Rellenar datalist
+  document.getElementById('cita-hora').value = '';
+  document.getElementById('cita-precio').value = '';
+  document.getElementById('cita-notas').value = '';
+  document.getElementById('modal-cita-title').textContent = 'Nueva Cita';
+  document.getElementById('cita-cliente').value = nombreCliente;
   const dl = document.getElementById('clientes-datalist');
   if (dl) dl.innerHTML = load('clientes').map(c => `<option value="${c.nombre}">`).join('');
+  m.classList.add('open');
 }
 
 function abrirPagoPerfil(nombreCliente, servicio, citaId) {

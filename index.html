@@ -1617,7 +1617,7 @@ function renderAgenda() {
     document.getElementById('agenda-selected-title').textContent = 'Citas del ' + new Date(selectedDate+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'});
     renderCitasLista(dayCitas);
   } else {
-    const upcoming = citas.filter(c => c.fecha >= todayStr).sort((a,b) => a.fecha?.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora)).slice(0,6);
+    const upcoming = citas.filter(c => !c.fecha || c.fecha >= todayStr).sort((a,b) => { if(!a.fecha) return -1; if(!b.fecha) return 1; return a.fecha.localeCompare(b.fecha)||a.hora?.localeCompare(b.hora); }).slice(0,6);
     document.getElementById('agenda-selected-title').textContent = 'Próximas citas';
     renderCitasLista(upcoming);
   }
@@ -2320,11 +2320,15 @@ function aprobarRegistro(id, r) {
   const citas = load('citas');
   const yaHayCita = citas.find(c => c.cliente === _nombre && c.estado !== 'Cancelada');
   if (!yaHayCita) {
+    // Normalizar fecha: Sheets puede devolver ISO '2026-04-23T06:00:00.000Z' → '2026-04-23'
+    const _fechaRaw = s(r['Fecha deseada']) || '';
+    const _fecha = _fechaRaw.length > 10 ? _fechaRaw.slice(0,10) : _fechaRaw;
+    const _horaRaw = s(r['Hora deseada']) || '';
     citas.unshift({
       id:        uid(),
       cliente:   _nombre,
-      fecha:     s(r['Fecha deseada']) || '',
-      hora:      s(r['Hora deseada'])  || '',
+      fecha:     _fecha,
+      hora:      _horaRaw,
       servicio:  s(r['Servicio'])      || 'Por confirmar',
       ubicacion: 'Studio Rocío Vene',
       precio:    0,

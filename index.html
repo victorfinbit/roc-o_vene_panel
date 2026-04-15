@@ -2248,23 +2248,26 @@ function cargarRegistros() {
 }
 
 function renderRegCard(r, aprobada) {
-  const ini = (r['Nombre'] || '?').split(' ').map(w => w[0] || '').slice(0,2).join('').toUpperCase();
-  const servicio = r['Servicio'] || '—';
-  const fuente   = r['Fuente']   || '';
-  const fecha    = r['Fecha registro'] || '';
-  const fechaDeseada = r['Fecha deseada'] ? ` · 📅 ${r['Fecha deseada']}` : '';
-  const notas    = r['Notas']    ? `<br>📝 ${r['Notas']}` : '';
-  const id       = r['ID']       || '';
+  const s = (v) => (v !== undefined && v !== null) ? String(v) : '';
+  const nombre   = s(r['Nombre'])   || '—';
+  const whatsapp = s(r['WhatsApp']) || '';
+  const ini      = nombre.split(' ').map(w => w[0] || '').slice(0,2).join('').toUpperCase();
+  const servicio = s(r['Servicio']) || '—';
+  const fuente   = s(r['Fuente'])   || '';
+  const fecha    = s(r['Fecha registro']) || '';
+  const fechaDeseada = s(r['Fecha deseada']) ? ` · 📅 ${s(r['Fecha deseada'])}` : '';
+  const notas    = s(r['Notas']) ? `<br>📝 ${s(r['Notas'])}` : '';
+  const id       = s(r['ID']) || '';
 
   return `<div class="reg-card-item ${aprobada ? 'aprobada' : ''}" id="regcard-${id}">
     <div class="reg-avatar">${ini}</div>
     <div class="reg-info">
       <div class="reg-nombre">
-        ${r['Nombre'] || '—'}
+        ${nombre}
         ${!aprobada ? '<span class="reg-tag-nueva">Nueva</span>' : ''}
       </div>
       <div class="reg-detalle">
-        <span>📱 ${r['WhatsApp'] || '—'}</span>
+        <span>📱 ${whatsapp || '—'}</span>
         <span>💄 ${servicio}</span>
         ${fuente ? `<span>📍 ${fuente}</span>` : ''}
         ${fechaDeseada}
@@ -2274,7 +2277,7 @@ function renderRegCard(r, aprobada) {
     </div>
     <div class="reg-actions">
       ${!aprobada ? `
-        <a href="https://wa.me/${(r['WhatsApp']||'').replace(/[^0-9]/g,'')}" target="_blank" class="btn-icon" title="WhatsApp" style="font-size:18px">📱</a>
+        <a href="https://wa.me/${whatsapp.replace(/[^0-9]/g,'')}" target="_blank" class="btn-icon" title="WhatsApp" style="font-size:18px">📱</a>
         <button class="btn-aprobar" onclick="aprobarRegistro('${id}', ${JSON.stringify(r).replace(/"/g,'&quot;')})">✓ Aprobar</button>
       ` : `<span style="font-size:12px;color:var(--rv-success);font-weight:500">✓ Aprobada</span>`}
     </div>
@@ -2288,21 +2291,24 @@ function aprobarRegistro(id, r) {
   localStorage.setItem(APROBADAS_KEY, JSON.stringify(aprobadas));
 
   // Guardar en clientes
+  const s2 = (v) => (v !== undefined && v !== null) ? String(v) : '';
   const clientes = load('clientes');
+  const _tel    = s2(r['WhatsApp']);
+  const _nombre = s2(r['Nombre']);
   const yaExiste = clientes.find(c =>
-    c.tel === r['WhatsApp'] ||
-    (c.nombre || '').toLowerCase() === (r['Nombre'] || '').toLowerCase()
+    c.tel === _tel ||
+    (c.nombre || '').toLowerCase() === _nombre.toLowerCase()
   );
   if (!yaExiste) {
     clientes.unshift({
-      id: id || (Date.now().toString(36)),
-      nombre:   r['Nombre']       || '',
-      tel:      r['WhatsApp']     || '',
-      email:    r['Email']        || '',
-      cumple:   r['Cumpleaños']   || '',
+      id:       id || Date.now().toString(36),
+      nombre:   _nombre,
+      tel:      _tel,
+      email:    s2(r['Email']),
+      cumple:   s2(r['Cumpleaños']),
       tipo:     'Nueva',
-      servicio: r['Servicio']     || '',
-      notas:    `Fuente: ${r['Fuente'] || '—'}. ${r['Notas'] || ''}`.trim(),
+      servicio: s2(r['Servicio']),
+      notas:    `Fuente: ${s2(r['Fuente']) || '—'}. ${s2(r['Notas'])}`.trim(),
       creado:   Date.now(),
       registradaOnline: true,
     });
@@ -2318,7 +2324,7 @@ function aprobarRegistro(id, r) {
     card.querySelector('.reg-actions').innerHTML = '<span style="font-size:13px;color:var(--rv-success);font-weight:500">✓ ¡Agregada a clientes!</span>';
   }
 
-  toast('✓ ' + (r['Nombre'] || 'Clienta') + ' agregada a tu lista');
+  toast('✓ ' + (_nombre || 'Clienta') + ' agregada a tu lista');
   renderDashboard();
 
   // Recargar después de 1.5s para reflejar cambios

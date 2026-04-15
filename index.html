@@ -1604,9 +1604,13 @@ function verPerfil(id) {
   const wa = c.tel ? `<a href="https://wa.me/${c.tel.replace(/[^0-9]/g,'')}" class="wa-btn" target="_blank" style="font-size:12px;padding:6px 12px;">💬 WhatsApp</a>` : '';
   const ultimaCita = citas[0];
   document.getElementById('perfil-actions').innerHTML = wa + `
-    <button onclick="abrirPagoPerfil('${c.nombre}', '${ultimaCita ? ultimaCita.servicio.replace(/'/g,"\'") : ''}', '${ultimaCita ? ultimaCita.id : ''}')"
+    <button onclick="abrirPagoPerfil('${c.nombre}', '${ultimaCita ? ultimaCita.servicio.replace(/'/g,"\\'"): ''}', '${ultimaCita ? ultimaCita.id : ''}')" 
       style="background:var(--rv-nude);color:white;border:none;padding:6px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
       💰 Registrar pago
+    </button>
+    <button onclick="abrirCitaPerfil('${c.nombre}', '${c.id}')" 
+      style="background:var(--rv-champagne);color:var(--rv-deep);border:1px solid rgba(201,168,130,0.4);padding:6px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+      📅 Nueva cita
     </button>`;
   // Historial
   if (!citas.length) {
@@ -2519,6 +2523,20 @@ document.getElementById('tx-fecha').value = now.toISOString().split('T')[0];
 // ============================================================
 // PAGO DESDE PERFIL
 // ============================================================
+function abrirCitaPerfil(nombreCliente, clienteId) {
+  // Cerrar perfil y abrir modal de cita con nombre pre-llenado
+  closeModal('modal-perfil');
+  // Usar _openModal para abrir el modal de cita
+  _openModal('cita');
+  // Pre-llenar el nombre del cliente
+  document.getElementById('cita-cliente').value = nombreCliente;
+  document.getElementById('cita-edit-id').value = '';
+  document.getElementById('modal-cita-title').textContent = 'Nueva Cita — ' + nombreCliente;
+  // Rellenar datalist
+  const dl = document.getElementById('clientes-datalist');
+  if (dl) dl.innerHTML = load('clientes').map(c => `<option value="${c.nombre}">`).join('');
+}
+
 function abrirPagoPerfil(nombreCliente, servicio, citaId) {
   const today = now.toISOString().split('T')[0];
   document.getElementById('pp-fecha').value = today;
